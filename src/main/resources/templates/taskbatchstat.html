@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout" layout:decorator="fragments/layout">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>用户日任务统计</title>
+       <style>
+        .point{
+            cursor:pointer;
+        }
+        .dateicon {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAASAgMAAAA1aVZ3AAAACVBMVEUAAAD///9nyrNdI4MmAAAAAXRSTlMAQObYZgAAAChJREFUCNdjWAUCCxjg9DQgtTKBAUN8aigQJGCho6KiYDSJ8ggaYR8Ao74zAKjm+cYAAAAASUVORK5CYII="); background-repeat:no-repeat;background-position: right center;}
+    </style>
+    <script type="application/javascript">
+
+
+    </script>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div id="page-wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">任务管理</h1>
+            </div>
+            <!-- /.col-lg-12 -->
+        </div>
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        任务完成统计
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        <div class="search">
+                            <div class="search">
+                                任务名称：<span th:text="${taskbatch.title}" ></span>,任务总数量：<span th:text="${taskbatch.filecounts}" ></span>,任务创建日期：<span th:text="${taskbatch.createtime}" ></span>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="alert alert-success">
+                                完成任务数:<span th:text="${daytask==null?0:(daytask.donum==null?0:daytask.donum)}"></span>
+                            </div>
+                            <div class="alert alert-info">
+                                成功数:<span th:text="${daytask==null?0:(daytask.successnum==null?0:(daytask.successnum>daytask.donum?daytask.donum:daytask.successnum))}"></span>
+                            </div>
+                            <div class="alert alert-warning">
+                                失败数:<span th:text="${daytask==null?0:(daytask.failnum==null?0:daytask.failnum)}"></span>
+                            </div>
+                            <div class="alert alert-danger">
+                                失败率:<span th:text="${daytask==null?0:daytask.failrate}+'%'"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <!-- /.panel -->
+            </div>
+            <!-- /.col-lg-12 -->
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /#page-wrapper -->
+
+    <script>
+
+    </script>
+</div>
+
+
+</body>
+
+</html>

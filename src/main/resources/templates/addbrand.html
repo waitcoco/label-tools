@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout" layout:decorator="fragments/layout">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>车辆品牌管理</title>
+    <script type="application/javascript">
+        $(document).ready(function(e) {
+            $("#picurl").blur(function(){
+                $("#pic").attr('src',$("#picurl").val());
+            });
+
+            $('form').submit(function(){
+                var brand=$.trim($("#brand").val())
+                if(brand==""){
+                    alert("品牌名不能为空");
+                    $("#brand").focus();
+                    return false;
+                }
+
+                var picurl=$.trim($("#picurl").val())
+                if($("#picurl").val()==""){
+                    alert("图标链接不能为空");
+                    $("#picurl").focus();
+                    return false;
+                }
+                return true;
+            });
+
+        });
+
+
+
+    </script>
+</head>
+
+<body>
+<div layout:fragment="content">
+            <div id="page-wrapper">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">车辆品牌管理</h1>
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+                <!-- /.row -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading" th:text="${title}">
+                                新增品牌
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div th:text="${msg}" style="color: #ff201e;"></div>
+                                        <form role="form" th:action="@{../admin/savebrand}" method="post" onsubmit="return checkfrm()">
+                                            <input type="hidden" name="id" th:value="${id}">
+                                            <div class="form-group">
+                                                <label>首字母：</label>
+                                                <input id="first" name="first" class="form-control" placeholder="首字母" type="text" th:value="${first}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>品牌名：</label>
+                                                <input id="brand" name="brand" class="form-control" placeholder="品牌名" type="text" th:value="${brand}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>图标链接：</label>
+                                                <input id="picurl" name="picurl" class="form-control" placeholder="图标链接" type="text" th:value="${picurl}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>图标：</label>
+                                                <img th:src="${picurl}" id="pic">
+                                            </div>
+                                            <button type="submit" class="btn btn-default">保 存</button>
+                                            <button type="reset" class="btn btn-default">重 置</button>
+                                        </form>
+
+                                    </div>
+
+                                </div>
+                                <!-- /.row (nested) -->
+                            </div>
+                            <!-- /.panel-body -->
+                        </div>
+                        <!-- /.panel -->
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+                <!-- /.row -->
+            </div>
+        <!-- /#page-wrapper -->
+</div>
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout" layout:decorator="fragments/layout">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>任务管理</title>
+    <style>
+        .doc{
+            float: left;width:60%; overflow-y:auto;
+        }
+        .editor{
+            float: right;width:40%; height:500px;overflow-y:auto;
+        }
+        .group{
+           margin-top: 10px; background: #f5f9f8; border: #c4c4c7 solid 1px;  border-radius: 5px; padding:5px;
+        }
+        .btn{
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .addbtn{
+            color: #67bf81;
+            border: solid 1px #cbdcc3;
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .addbtnbig{
+            color: #67bf81;
+            border: solid 1px #cbdcc3;
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            font-size:18px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .margintop8{
+            margin-top: 8px;
+        }
+        .delbtn,.delperbtn{
+            color: #795548;
+            border: solid 1px #eeefed;
+            width: 100px;
+            padding: 5px;
+            margin: 2px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .subbtn{
+            color: #F44336;
+            border: solid 1px  #efe0e0;
+            width: 100px;
+            padding: 5px;
+            margin: 2px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .brand{
+            height:200px;overflow-y:auto;
+        }
+        .mao{
+            padding: 4px;
+        }
+        .overtime{
+            color: #ff252f;
+            font-size: 20px;
+        }
+        .clipimg{
+            margin: 5px;
+        }
+    </style>
+    <script type="application/javascript">
+   $(document).ready(function(e) {
+        const initJson=JSON.parse("[[${personsdatajson}]]".replace(/&quot;/gi, '"'));
+        console.log(JSON.stringify(initJson, null, 2));
+       loadFromJson(initJson);
+       var filename = "[[${task.folder}]]"+"[[${task.filename}]]";
+       $("#img").attr('src',filename);
+
+        function setperson(target,persons){
+            console.log(persons+''+persons.length);
+            if(persons.length==0){
+                $("#annontioan2").attr("checked","checked");
+                $("#personinfo").hide();
+            }else{
+                $("#annontioan1").attr("checked","checked");
+                $("#personinfo").show();
+                target.find(`.person`).each(function(index) {
+                    $(this).find(`[name='shape`+index+`'][value='`+persons[index].shape+`']`).attr("checked",true);
+                    $(this).find(`[name='sex`+index+`'][value='`+persons[index].sex+`']`).attr("checked",true);
+                    $(this).find(`[name='age`+index+`'][value='`+persons[index].age+`']`).attr("checked",true);
+                    $(this).find(`[name='clothcolor`+index+`'][value='`+persons[index].clothcolor+`']`).attr("checked",true);
+                    $(this).find(`[name='pantscolor`+index+`'][value='`+persons[index].pantscolor+`']`).attr("checked",true);
+                });
+            }
+
+        }
+        function loadFromJson(json){
+            if(json.persons){
+                //$("#sub").focus();
+                // for (var i=0;i<json.persons.length;i++) {
+                //     addperson($("#personinfo"));
+                // }
+                setperson($("#personinfo"),json.persons);
+
+            }else{
+                $("#annontioan2").attr("checked","checked");
+                $("#personinfo").hide();
+            }
+        }
+        function countTime() {
+            //获取当前时间
+            var date = new Date();
+            var now = date.getTime();
+            //设置截止时间
+            var endDate = new Date("[[${task.createtime}]]");
+            var end = endDate.getTime()+10*60*1000;
+            //时间差
+            var leftTime = end-now;
+            //定义变量 d,h,m,s保存倒计时的时间
+            var s=0;
+            if (leftTime&&leftTime>=0) {
+                s = Math.floor(leftTime/1000);
+            }else{
+                s=0;
+                $.ajax({
+                    type: "POST",
+                    url: "[[@{../admin/overtask(taskno=${task.taskno})}]]",
+                    data: "",
+                    success: function(data){
+                        window.location.href="[[@{../admin/dotask(batchno=${taskbatch.batchno})}]]";
+                    }
+                });
+            }
+
+            $("#overtime").html("剩余时间："+s+"秒") ;
+            //递归每秒调用countTime方法，显示动态时间效果
+            setTimeout(countTime,1000);
+
+        }
+
+
+
+            var role = "[[${session.ssysuser.role}]]";
+            if(role=='2'){
+                countTime();
+            }else{
+                $("#sub").focus();
+            }
+            $("#sub").blur(function(){
+                // $("#firstresult2").attr("checked","checked");
+                // $("#secondresult2").attr("checked","checked");
+
+            })
+           $("input[name='annontioan']").change(function () {
+               if($(this).val()==1){
+                   $("#personinfo").show();
+               }else{
+                   $("#personinfo").hide();
+               }
+           });
+            function getPerson(target){
+                const json={};
+                json.persons=[];
+                console.log($("input[name='annontioan']:checked").val());
+                if($("input[name='annontioan']:checked").val() ==1) {
+                    target.find(".person").each(function (index) {
+                        var shape = $(this).find(`[name='shape` + index + `']:checked`).val();
+                        var sex = $(this).find(`[name='sex` + index + `']:checked`).val();
+                        var age = $(this).find(`[name='age` + index + `']:checked`).val();
+                        var clothcolor = $(this).find(`[name='clothcolor` + index + `']:checked`).val();
+                        var pantscolor = $(this).find(`[name='pantscolor` + index + `']:checked`).val();
+
+                        json.persons.push({
+                            clothcolor: clothcolor,
+                            pantscolor: pantscolor,
+                            shape: shape,
+                            sex: sex,
+                            age: age
+                        })
+                    });
+                }
+                return json;
+
+            }
+
+            $('form').submit(function(){
+                const resultJson = getPerson($("#personinfo"));
+                $("#personsdata").val(JSON.stringify(resultJson));
+            });
+
+        });
+
+    </script>
+</head>
+
+<body>
+<div layout:fragment="content">
+            <div id="page-wrapper">
+                <!-- /.row -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                做任务
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label>文件名：</label>
+                                        <a th:href="${task.folder+task.filename}" target="_blank"> <span th:text="${task.filename}"></span></a>
+                                        <label>任务编号：</label>
+                                        <span th:text="${task.taskno}"></span>
+                                        <label>任务类型</label>
+                                        <span th:switch="${taskbatch.type}">
+                                            <span th:case="'1'">笔录</span>
+                                            <span th:case="'2'">车牌识别</span>
+                                            <span th:case="'3'">车辆信息</span>
+                                            <span th:case="'4'">文字录入</span>
+                                            <span th:case="'5'">行人信息</span>
+                                            <span th:case="'6'">人包信息</span>
+                                            <span th:case="'7'">车牌信息</span>
+                                            <span th:case="'8'">人员信息</span>
+                                        </span>
+                                        <label>任务描述：</label>
+                                        <span th:text="${taskbatch.descr}"></span>
+                                        <span id="overtime" class="overtime"></span>
+                                    </div>
+                                    <div class="doc" id="docdiv">
+                                        <div id="main"><img id="img" ></div>
+
+                                   </div>
+
+                                    <div class="col-lg-6 editor" >
+                                            <form name="frm" th:action="@{../admin/savepersoninfo}" method="post">
+                                                <input type="hidden" name="taskno" id="taskno" th:value="${task.taskno}">
+                                                <input type="hidden" name="personsdata" id="personsdata">
+                                                <div class="form-group">
+                                                    <label>是否标注：</label>
+                                                    <div class="radio">
+                                                        <label>
+                                                            <input type="radio"  name="annontioan" id="annontioan1" value="1" >是
+                                                        </label>
+                                                    </div>
+                                                    <div class="radio">
+                                                        <label>
+                                                            <input type="radio"  name="annontioan" id="annontioan2" value="0" checked="checked">否
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                               <div id="personinfo">
+                                                   <div class="person group">
+                                                       <label>人员信息</label>
+                                                       <div class="form-group">
+                                                           <label>体型</label>
+                                                           <input type="radio"  name="shape0" id="shape1" value="胖" >胖
+                                                           <input type="radio"  name="shape0" id="shape2" value="匀称" checked="checked">匀称
+                                                           <input type="radio"  name="shape0" id="shape2" value="瘦">瘦
+                                                       </div>
+                                                       <div class="form-group">
+                                                           <label>性别</label>
+                                                           <input type="radio"  name="sex0" id="sex1" value="男" checked="checked">男
+                                                           <input type="radio"  name="sex0" id="sex2" value="女">女
+                                                       </div>
+                                                       <div class="form-group">
+                                                           <label>年龄段</label>
+                                                           <input type="radio"  name="age0" id="age1" value="成年人" checked="checked">成年人
+                                                           <input type="radio"  name="age0" id="age2" value="老年人">老年人
+                                                           <input type="radio"  name="age0" id="age3" value="未成年人">未成年人
+                                                           <input type="radio"  name="age0" id="age4" value="婴幼儿" >婴幼儿
+                                                       </div>
+                                                       <div class="form-group">
+                                                           <label>上装颜色</label>
+                                                           <input type="radio"  name="clothcolor0" id="color1" value="黑色" checked="checked">黑色
+                                                           <input type="radio"  name="clothcolor0" id="color2" value="白色">白色
+                                                           <input type="radio"  name="clothcolor0" id="color3" value="灰色">灰色
+                                                           <input type="radio"  name="clothcolor0" id="color4" value="黄色">黄色
+                                                           <input type="radio"  name="clothcolor0" id="color5" value="粉色">粉色
+                                                           <input type="radio"  name="clothcolor0" id="color6" value="红色">红色
+                                                           <input type="radio"  name="clothcolor0" id="color7" value="紫色">紫色
+
+                                                           <input type="radio"  name="clothcolor0" id="color8" value="绿色">绿色
+
+                                                           <input type="radio"  name="clothcolor0" id="color9" value="橙色">棕色
+
+                                                           <input type="radio"  name="clothcolor0" id="color10" value="蓝色">蓝色
+                                                           <input type="radio"  name="clothcolor0" id="color11" value="青色">青色
+                                                           <input type="radio"  name="clothcolor0" id="color12" value="其他">其他
+                                                       </div>
+                                                       <div class="form-group">
+                                                           <label>下装颜色</label>
+                                                           <input type="radio"  name="pantscolor0" id="colora1" value="黑色" checked="checked">黑色
+                                                           <input type="radio"  name="pantscolor0" id="colora2" value="白色">白色
+                                                           <input type="radio"  name="pantscolor0" id="colora3" value="灰色">灰色
+                                                           <input type="radio"  name="pantscolor0" id="colora4" value="黄色">黄色
+                                                           <input type="radio"  name="pantscolor0" id="colora5" value="粉色">粉色
+                                                           <input type="radio"  name="pantscolor0" id="colora6" value="红色">红色
+                                                           <input type="radio"  name="pantscolor0" id="colora7" value="紫色">紫色
+
+                                                           <input type="radio"  name="pantscolor0" id="colora8" value="绿色">绿色
+
+                                                           <input type="radio"  name="pantscolor0" id="colora9" value="橙色">棕色
+
+                                                           <input type="radio"  name="pantscolor0" id="colora10" value="蓝色">蓝色
+                                                           <input type="radio"  name="pantscolor0" id="colora11" value="青色">青色
+                                                           <input type="radio"  name="pantscolor0" id="colora12" value="其他">其他
+                                                       </div>
+
+                                                   </div>
+                                               </div>
+                                                <th:block th:if="${session.ssysuser.role=='3'}">
+                                                    <div class="form-group">
+                                                        <label>是否合格：</label>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="firstresult" id="firstresult1" value="1" checked="checked">是
+                                                            </label>
+                                                        </div>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="firstresult" id="firstresult2" value="0">否
+                                                            </label>
+                                                        </div>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="firstresult" id="firstresult3" value="-1">重做
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </th:block>
+                                                <th:block th:if="${session.ssysuser.role=='4'}">
+                                                    <div class="form-group">
+                                                        <label>是否合格：</label>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="secondresult" id="secondresult1" value="1" checked="checked">是
+                                                            </label>
+                                                        </div>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="secondresult" id="secondresult2" value="0">否
+                                                            </label>
+                                                        </div>
+
+                                                    </div>
+                                                </th:block>
+                                                <th:block th:if="${session.ssysuser.role=='2'||session.ssysuser.role=='3'||session.ssysuser.role=='4'}">
+                                                    <input id="sub" class="subbtn" type="submit" value="保 存">
+                                                </th:block>
+                                      </form>
+
+                                    </div>
+                                </div>
+                                <!-- /.row (nested) -->
+                            </div>
+                            <!-- /.panel-body -->
+                        </div>
+                        <!-- /.panel -->
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+                <!-- /.row -->
+            </div>
+        <!-- /#page-wrapper -->
+</div>
+
+
+
+</body>
+
+</html>

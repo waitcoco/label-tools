@@ -1,0 +1,6 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="annotation">
+    <output-path>$USER_HOME$/NewDeployment</output-path>
+    <root id="archive" name="annotation.war" />
+  </artifact>
+</component>

@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout" layout:decorator="fragments/layout">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>任务管理</title>
+    <style>
+        .doc{
+            float: left;width:60%; overflow-y:auto;
+        }
+        .editor{
+            float: right;width:40%; height:500px;overflow-y:auto;
+        }
+        .group{
+           margin-top: 10px; background: #f5f9f8; border: #c4c4c7 solid 1px;  border-radius: 5px; padding:5px;
+        }
+        .btn{
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .addbtn{
+            color: #67bf81;
+            border: solid 1px #cbdcc3;
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .addbtnbig{
+            color: #67bf81;
+            border: solid 1px #cbdcc3;
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            font-size:18px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .margintop8{
+            margin-top: 8px;
+        }
+        .delbtn,.delnobtn,.delcarbtn{
+            color: #795548;
+            border: solid 1px #eeefed;
+            width: 100px;
+            padding: 5px;
+            margin: 2px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .carbaidu{
+            color: #ff201e;
+            font-size: 16px;
+        }
+        .subbtn{
+            color: #F44336;
+            border: solid 1px  #efe0e0;
+            width: 100px;
+            padding: 5px;
+            margin: 2px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .brand{
+            height:200px;overflow-y:auto;
+        }
+        .mao{
+            padding: 4px;
+        }
+        .overtime{
+            color: #ff252f;
+            font-size: 20px;
+        }
+        .clipimg{
+            margin: 5px;
+        }
+    </style>
+    <script type="application/javascript">
+    $(document).ready(function(e) {
+        const initJson=JSON.parse("[[${carsdatajson}]]".replace(/&quot;/gi, '"'));
+        console.log(JSON.stringify(initJson, null, 2));
+        const scale=1.5;
+        var carrectarry=new Array();
+        var carnorectarry=new Array();
+        loadFromJson(initJson);
+        var canvas = document.getElementById("thecanvas");
+        var ctx = canvas.getContext("2d");
+
+        var simg=new Image()
+        var filename = "[[${task.folder}]]"+"[[${task.filename}]]";
+        simg.src=filename;
+
+        var img=new Image()
+        var width=0;
+        var height=0;
+        var isscale=true;
+        img.src=filename;
+        var role = "[[${session.ssysuser.role}]]";
+        $('.subbtn').attr("disabled","disabled");// disabled
+        function addcar(target){
+            var i = target.find('.car').length;
+            var carhtml = '<div class="car group">'+
+                '<label>车辆信息</label>'+
+
+                '<div class="form-group">'+
+                '<label>车坐标</label>'+
+                '<input class="offseti form-control"  name="carlefttop" placeholder="车左上角" readonly="readonly">'+
+                '<input class="offseti form-control"  name="carrightbottom" placeholder="车右下角" readonly="readonly">'+
+                '<canvas class="clipimg" id="canvascar'+i+'"></canvas>'+
+                '<div class="delcarbtn">重框车</div>'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>车牌</label>'+
+                '<input class="form-control" name="carno" placeholder="输入车牌号码">'+
+                '<input class="offseti form-control"  name="lefttop" placeholder="车牌左上角" readonly="readonly">'+
+                '<input class="offseti form-control"  name="rightbottom" placeholder="车牌右下角" readonly="readonly">'+
+                '<canvas class="clipimg" id="canvascarno'+i+'" height="20px"></canvas>'+
+                '<div class="delnobtn">重框车牌</div>'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>颜色</label>'+
+                '<input type="radio"  name="color'+i+'" id="color1" value="黑色" checked="checked">黑色'+
+                '<input type="radio"  name="color'+i+'" id="color2" value="白色">白色'+
+                '<input type="radio"  name="color'+i+'" id="color3" value="灰色">灰色(银色)'+
+                '<input type="radio"  name="color'+i+'" id="color4" value="黄色">黄色'+
+                '<input type="radio"  name="color'+i+'" id="color5" value="粉色">粉色'+
+                '<input type="radio"  name="color'+i+'" id="color6" value="红色">红色'+
+                '<input type="radio"  name="color'+i+'" id="color7" value="紫色">紫色'+
+                
+                '<input type="radio"  name="color'+i+'" id="color8" value="绿色">绿色'+
+              
+                '<input type="radio"  name="color'+i+'" id="color9" value="棕色">棕色'+
+              
+                '<input type="radio"  name="color'+i+'" id="color10" value="蓝色">蓝色'+
+              
+                '<input type="radio"  name="color'+i+'" id="colorother" value="其他">其他'+
+                '<div class="otherc">'+
+                '<input class="form-control" name="tcolor'+i+'" placeholder="">'+
+                '</div>'+
+                '</div>'+
+
+                '<div class="form-group">'+
+                '<label>车型</label>'+
+                '<input type="radio"  name="type'+i+'" id="type1" value="轿车" checked="checked" >轿车'+
+                '<input type="radio"  name="type'+i+'" id="type2" value="面包车">面包车'+
+                '<input type="radio"  name="type'+i+'" id="type3" value="SUV">SUV'+
+                '<input type="radio"  name="type'+i+'" id="type4" value="MPV">MPV'+
+                '<input type="radio"  name="type'+i+'" id="type5" value="皮卡">皮卡'+
+                '<input type="radio"  name="type'+i+'" id="type6" value="客车">客车'+
+                '<input type="radio"  name="type'+i+'" id="type7" value="卡车">卡车'+
+                '<input type="radio"  name="type'+i+'" id="type8" value="跑车">跑车'+
+                '<input type="radio"  name="type'+i+'" id="typeother" value="其他">其他'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>品牌</label>'+
+                '<div style="word-break: break-all; word-wrap:break-word;"><a class="mao" href="#A'+i+'">A</a><a class="mao" href="#B'+i+'">B</a><a class="mao" href="#C'+i+'">C</a><a class="mao" href="#D'+i+'">D</a><a class="mao" href="#E'+i+'">E</a><a class="mao" href="#F'+i+'">F</a><a class="mao" href="#G'+i+'">G</a><a class="mao" href="#H'+i+'">H</a><a class="mao" href="#J'+i+'">J</a><a class="mao" href="#K'+i+'">K</a><a class="mao" href="#L'+i+'">L</a><a class="mao" href="#M'+i+'">M</a><a class="mao" href="#N'+i+'">N</a><a class="mao" href="#O'+i+'">O</a><a class="mao" href="#P'+i+'">P</a><a class="mao" href="#Q'+i+'">Q</a><a class="mao" href="#R'+i+'">R</a><a class="mao" href="#S'+i+'">S</a><a class="mao" href="#T'+i+'">T</a><a class="mao" href="#W'+i+'">W</a><a class="mao" href="#X'+i+'">X</a><a class="mao" href="#Y'+i+'">Y</a><a class="mao" href="#Z'+i+'">Z</a></div>'+
+                '<div class="brand">'+
+                '<div style="margin:0 5px;">'+
+
+                '<div><a name="A'+i+'" id="A'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="奥迪">奥迪 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_9_100.png" width="48" height="48"></label></div><div><a name="B'+i+'" id="B'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="宝骏">宝骏 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_157_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="宝马">宝马 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_3_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="奔驰">奔驰 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_2_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="本田">本田 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_26_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="标致">标致 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_5_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="别克">别克 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_127_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="比亚迪">比亚迪 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_15_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="保时捷">保时捷 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_82_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="宝沃">宝沃 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_236_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="奔腾">奔腾 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_59_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="比速">比速 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_263_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="北汽绅宝">北汽绅宝 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_195_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="北汽幻速">北汽幻速 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_211_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="北汽威旺">北汽威旺 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_168_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="北汽昌河">北汽昌河 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_129_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="北汽制造">北汽制造 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_14_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="北京">北京 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_163_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="宾利">宾利 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_85_100.png" width="48" height="48"></label></div><div><a name="C'+i+'" id="C'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="长安">长安 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_136_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="长安欧尚">长安欧尚 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_159_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="长安轻型车">长安轻型车 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_281_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="长安跨越">长安跨越 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_283_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="长城">长城 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_21_100.png" width="48" height="48"></label></div><div><a name="D'+i+'" id="D'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="大众">大众 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_8_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="东风风度">东风风度 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_197_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="东风风神">东风风神 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_141_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="东风小康">东风小康 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_205_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="东风">东风 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_27_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="东南">东南 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_29_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="道奇">道奇 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_113_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="DS">DS <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_179_100.png" width="48" height="48"></label></div><div><a name="F'+i+'" id="F'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="丰田">丰田 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_7_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="福特">福特 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_17_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="菲亚特">菲亚特 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_40_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="法拉利">法拉利 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_91_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="福迪">福迪 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_67_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="福汽启腾">福汽启腾 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_208_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="福田">福田 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_128_100.png" width="48" height="48"></label></div><div><a name="G'+i+'" id="G'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="广汽传祺">广汽传祺 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_147_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="观致">观致 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_182_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="国金">国金 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_290_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="GMC">GMC <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_109_100.png" width="48" height="48"></label></div><div><a name="H'+i+'" id="H'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="哈弗">哈弗 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_196_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="海马">海马 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_32_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="汉腾">汉腾 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_259_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="红旗">红旗 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_58_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="华泰">华泰 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_112_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="黄海">黄海 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_52_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="华骐">华骐 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_292_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="华颂">华颂 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_225_100.png" width="48" height="48"></label></div><div><a name="J'+i+'" id="J'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="吉利">吉利 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_34_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="江淮">江淮 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_35_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="捷豹">捷豹 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_98_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="Jeep">Jeep <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_4_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="捷途">捷途 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_296_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="江铃">江铃 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_37_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="金杯">金杯 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_39_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="金龙">金龙 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_57_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="九龙">九龙 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_152_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="君马">君马 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_279_100.png" width="48" height="48"></label></div><div><a name="K'+i+'" id="K'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="凯迪拉克">凯迪拉克 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_107_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="凯翼">凯翼 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_220_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="克莱斯勒">克莱斯勒 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_51_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="开瑞">开瑞 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_150_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="卡升">卡升 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_214_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="卡威">卡威 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_213_100.png" width="48" height="48"></label></div><div><a name="L'+i+'" id="L'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="雷克萨斯">雷克萨斯 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_94_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="雷诺">雷诺 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_99_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="领克">领克 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_267_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="林肯">林肯 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_95_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="陆风">陆风 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_36_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="路虎">路虎 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_96_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="力帆">力帆 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_76_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="铃木">铃木 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_16_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="劳斯莱斯">劳斯莱斯 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_80_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="兰博基尼">兰博基尼 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_86_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="猎豹">猎豹 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_153_100.png" width="48" height="48"></label></div><div><a name="M'+i+'" id="M'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="马自达">马自达 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_18_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="名爵">名爵 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_79_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="MINI">MINI <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_81_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="迈凯伦">迈凯伦 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_183_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="玛莎拉蒂">玛莎拉蒂 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_93_100.png" width="48" height="48"></label></div><div><a name="N'+i+'" id="N'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="纳智捷">纳智捷 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_155_100.png" width="48" height="48"></label></div><div><a name="O'+i+'" id="O'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="讴歌">讴歌 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_84_100.png" width="48" height="48"></label></div><div><a name="P'+i+'" id="P'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="Polestar">Polestar <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_293_100.png" width="48" height="48"></label></div><div><a name="Q'+i+'" id="Q'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="奇瑞">奇瑞 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_42_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="启辰">启辰 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_156_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="起亚">起亚 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_28_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="前途">前途 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_231_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="奇点汽车">奇点汽车 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_287_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="庆铃">庆铃 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_43_100.png" width="48" height="48"></label></div><div><a name="R'+i+'" id="R'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="日产">日产 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_30_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="荣威">荣威 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_78_100.png" width="48" height="48"></label></div><div><a name="S'+i+'" id="S'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="斯柯达">斯柯达 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_10_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="斯巴鲁">斯巴鲁 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_111_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="smart">smart <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_89_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="SOL">SOL <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_299_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="三菱">三菱 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_25_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="上汽大通">上汽大通 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_165_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="山姆">山姆 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_209_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="双龙">双龙 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_102_100.png" width="48" height="48"></label></div><div><a name="T'+i+'" id="T'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="特斯拉">特斯拉 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_189_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="腾势">腾势 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_175_100.png" width="48" height="48"></label></div><div><a name="W'+i+'" id="W'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="五菱">五菱 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_48_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="沃尔沃">沃尔沃 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_19_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="WEY">WEY <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_270_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="蔚来">蔚来 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_266_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="五十铃">五十铃 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_132_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="潍柴英致">潍柴英致 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_207_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="威马汽车">威马汽车 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_298_100.png" width="48" height="48"></label></div><div><a name="X'+i+'" id="X'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="雪佛兰">雪佛兰 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_49_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="雪铁龙">雪铁龙 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_6_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="现代">现代 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_13_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="小鹏汽车">小鹏汽车 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_297_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="星驰">星驰 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_286_100.png" width="48" height="48"></label></div><div><a name="Y'+i+'" id="Y'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="英菲尼迪">英菲尼迪 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_100_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="驭胜">驭胜 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_258_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="野马">野马 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_138_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="一汽">一汽 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_53_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="依维柯">依维柯 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_41_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="裕路">裕路 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_291_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="云度">云度 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_285_100.png" width="48" height="48"></label></div><div><a name="Z'+i+'" id="Z'+i+'" ></a><label><input type="radio"  name="brand'+i+'" value="众泰">众泰 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_77_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="中华">中华 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_60_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="知豆">知豆 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_233_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="之诺">之诺 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_203_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" value="中兴">中兴 <img src="http://image.bitautoimg.com/bt/car/default/images/logo/masterbrand/png/100/m_33_100.png" width="48" height="48"></label></div><div><label><input type="radio"  name="brand'+i+'" id="brandother" value="其他">其他</label></div>'+
+                '<div class="otherb">'+
+                '<input class="form-control" name="tbrand'+i+'" placeholder="">'+
+                '</div>'+
+                '</div>'+
+                '</div>'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>特殊物品</label>'+
+                '<div class="checkbox">'+
+                '<label>'+
+                '<input name="goods'+i+'" type="checkbox" value="挂坠">挂坠'+
+                '</label>'+
+                '</div>'+
+                '<div class="checkbox">'+
+                '<label>'+
+                '<input name="goods'+i+'" type="checkbox" value="摆件">摆件'+
+                '</label>'+
+                '</div>'+
+                '<div class="checkbox">'+
+                '<label>'+
+                '<input name="goods'+i+'" type="checkbox" value="出入证">出入证'+
+                '</label>'+
+                '</div>'+
+                '<div class="checkbox">'+
+                '<label>'+
+                '<input name="goods'+i+'" type="checkbox" value="苹果">苹果'+
+                '</label>'+
+                '</div>'+
+                '<div class="checkbox">'+
+                '<label>'+
+                '<input name="goods'+i+'" type="checkbox" value="泰迪熊">泰迪熊'+
+                '</label>'+
+                '</div>'+
+                '<div class="checkbox">'+
+                '<label>'+
+                '<input name="goods'+i+'" type="checkbox" value="其他">其他'+
+                '</label>'+
+                '</div>'+
+                '</div><div class="delbtn">删除</div>'+
+                '</div>';
+            target.append(carhtml);
+            return i;
+        }
+        function setcar(target,cars){
+            var filename = "[[${task.folder}]]"+"[[${task.filename}]]";
+            target.find(`.car`).each(function(index) {
+                if(cars[index].lefttop&&cars[index].rightbottom){
+                    $(this).find(`[name='lefttop']`).val(cars[index].lefttop);
+                    $(this).find(`[name='rightbottom']`).val(cars[index].rightbottom);
+                    var lt = cars[index].lefttop;
+                    var lts = lt.split(",");
+                    var lx = Number(lts[0]);
+                    var ly =  Number(lts[1]);
+                    var yx = cars[index].rightbottom;
+                    var yxs = yx.split(",");
+                    var xx = Number(yxs[0]);
+                    var yy = Number(yxs[1]);
+                    var w=xx-lx;
+                    var h=yy-ly;
+
+                    var scanvas = $('#canvascarno'+index)[0];
+                    scanvas.setAttribute("width",w);
+                    scanvas.setAttribute("height",h);
+                    var sctx = scanvas.getContext("2d");
+                    sctx.drawImage(simg,lx,ly,w,h,0,0,w,h);
+                }
+                if(cars[index].carlefttop&&cars[index].carrightbottom){
+                    $(this).find(`[name='carlefttop']`).val(cars[index].carlefttop);
+                    $(this).find(`[name='carrightbottom']`).val(cars[index].carrightbottom);
+                    var lt = cars[index].carlefttop;
+                    var lts = lt.split(",");
+                    var lx = Number(lts[0]);
+                    var ly =  Number(lts[1]);
+                    var yx = cars[index].carrightbottom;
+                    var yxs = yx.split(",");
+                    var xx = Number(yxs[0]);
+                    var yy = Number(yxs[1]);
+                    var w=xx-lx;
+                    var h=yy-ly;
+                    var scanvas = $('#canvascar'+index)[0];
+                    scanvas.setAttribute("width",w*2);
+                    scanvas.setAttribute("height",h*2);
+                    scanvas.style.width = w + 'px';
+                    scanvas.style.height = h + 'px';
+                    var sctx = scanvas.getContext("2d");
+                    sctx.scale(2,2);
+                    sctx.drawImage(simg,lx,ly,w,h,0,0,w,h);
+                }
+
+                $(this).find(`[name='carno']`).val(cars[index].carno);
+                $(this).find(`[name='color`+index+`'][value='`+cars[index].color+`']`).attr("checked",true);
+                var cisother=true;
+                $(this).find(`[name='color`+index+`']`).each(function () {
+                    if ($(this).is(':checked')) {
+                        cisother=false;
+                        return;
+                    }
+                });
+                if(cisother){
+                    $(this).find(`[name='color`+index+`'][value='其他']`).attr("checked",true);
+                    $(this).find(`[name='tcolor`+index+`']`).val(cars[index].color);
+                }
+                $(this).find(`[name='type`+index+`'][value='`+cars[index].type+`']`).attr("checked",true);
+
+                $(this).find(`[name='brand`+index+`'][value='`+cars[index].brand+`']`).attr("checked",true);
+
+                var bisother=true;
+                $(this).find(`[name='brand`+index+`']`).each(function () {
+                    if ($(this).is(':checked')) {
+                        bisother=false;
+                        return;
+                    }
+                });
+                if(bisother){
+                    $(this).find(`[name='brand`+index+`'][value='其他']`).attr("checked",true);
+                    $(this).find(`[name='tbrand`+index+`']`).val(cars[index].brand);
+                }
+
+
+                var goodstr = cars[index].goods;
+                if(goodstr&&goodstr.length>0){
+                    var goods = goodstr.split(",");
+                    for(const good of goods){
+                        $(this).find(`[name='goods`+index+`'][value='`+good+`']`).attr("checked",true);
+                    }
+                }
+            });
+        }
+        function loadFromJson(json){
+            if(json.cars){
+                //$("#sub").focus();
+                for (var i=0;i<json.cars.length;i++) {
+                    addcar($("#carsinfo"));
+                    if(json.cars[i].carlefttop&&json.cars[i].carrightbottom){
+                        var lt = json.cars[i].carlefttop;
+                        var lts = lt.split(",");
+                        var lx = Number(lts[0]);
+                        var ly =  Number(lts[1]);
+                        var yx = json.cars[i].carrightbottom;
+                        var yxs = yx.split(",");
+                        var xx = Number(yxs[0]);
+                        var yy = Number(yxs[1]);
+                        var w=xx-lx;
+                        var h=yy-ly;
+                        var rect = {x:lx/scale,y:ly/scale,w:w/scale,h:h/scale};
+                        carrectarry.push(rect);
+
+                    }
+                    if(json.cars[i].lefttop&&json.cars[i].rightbottom){
+                        var lt = json.cars[i].lefttop;
+                        var lts = lt.split(",");
+                        var lx = Number(lts[0]);
+                        var ly =  Number(lts[1]);
+                        var yx = json.cars[i].rightbottom;
+                        var yxs = yx.split(",");
+                        var xx = Number(yxs[0]);
+                        var yy = Number(yxs[1]);
+                        var w=xx-lx;
+                        var h=yy-ly;
+                        var rect = {x:lx/scale,y:ly/scale,w:w/scale,h:h/scale};
+                        carnorectarry.push(rect);
+
+                    }
+                }
+                //setcar($("#carsinfo"),json.cars);
+            }
+        }
+        function countTime() {
+            //获取当前时间
+            var date = new Date();
+            var now = date.getTime();
+            //设置截止时间
+            var endDate = new Date("[[${task.createtime}]]");
+            var end = endDate.getTime()+10*60*1000;
+            //时间差
+            var leftTime = end-now;
+            //定义变量 d,h,m,s保存倒计时的时间
+            var s=0;
+            if (leftTime&&leftTime>=0) {
+                s = Math.floor(leftTime/1000);
+            }else{
+                s=0;
+                $.ajax({
+                    type: "POST",
+                    url: "[[@{../admin/overtask(taskno=${task.taskno})}]]",
+                    data: "",
+                    success: function(data){
+                        window.location.href="[[@{../admin/dotask(batchno=${taskbatch.batchno})}]]";
+                    }
+                });
+            }
+
+            $("#overtime").html("剩余时间："+s+"秒") ;
+            //递归每秒调用countTime方法，显示动态时间效果
+            setTimeout(countTime,1000);
+
+        }
+
+
+
+           // $("#img").attr('src',filename);
+           //  $("#aimg").attr('href',filename);
+           //  var naturalWidth = 0,naturalHeight =0;
+           //  var nowwidth =0;
+           //  var nowheight=0;
+           //  var scale=0;
+           //  document.getElementById("img").onload = function () {
+           //      naturalWidth = document.getElementById('img').naturalWidth;
+           //      naturalHeight = document.getElementById('img').naturalHeight;
+           //      nowwidth = document.getElementById('img').clientWidth;
+           //      nowheight= document.getElementById('img').clientHeight;
+           //      scale = naturalWidth/nowwidth;
+           //  };
+           //
+           //  $("#img").blowup({
+           //      "background" : "#F39C12",
+           //      "width" : 250,
+           //      "height" : 250
+           //  });
+           //
+           //  $("#img").click(function(e) {
+           //
+           //      var offset = $(this).offset();
+           //      var relativeX = (e.pageX - offset.left)*scale-6;
+           //      var relativeY = (e.pageY - offset.top)*scale-6;
+           //
+           //      $(".offseti").each(function(index){
+           //          if($(this).val()==""){
+           //              $(this).val(relativeX.toFixed(0)+","+relativeY.toFixed(0));
+           //              if((index+1)%2==0){
+           //                  var yx = $(this).prev().val();
+           //                  var yxs = yx.split(",");
+           //                  var xx = Number(yxs[0]);
+           //                  var yy = Number(yxs[1]);
+           //                  var w=relativeX.toFixed(0)-xx;
+           //                  var h=relativeY.toFixed(0)-yy;
+           //                  $(this).next().css("background-image","url("+filename+")")
+           //                  $(this).next().css("background-position","-"+xx+"px -"+yy+"px");
+           //                  $(this).next().css("background-repeat","no-repeat");
+           //                  //$(this).next().css("background","url("+filename+") no-repeat scroll -"+xx+"px -"+yy+"px; ");
+           //                  $(this).next().width(w);
+           //                  $(this).next().height(h);
+           //              }
+           //              return false;
+           //          }
+           //      });
+           //
+           //  });
+            var flag = false;
+            var x = 0; // 鼠标开始移动的位置X
+            var y = 0; // 鼠标开始移动的位置Y
+
+            var drw=false;
+            var drwcar=false;
+            var noindex = 0;
+            var isdelcar=false;
+            $("body").on("click", ".addcar",function(){
+                addcar($("#carsinfo"));
+                //$(this).before($(".car:first").clone(true).append('<div class="delbtn">删除</div>'))
+            });
+
+            $("body").on("click", ".delbtn", function() {
+                del($(this).parent().index());
+                $(this).parent().remove();
+                drwcar=false;
+            });
+            $("body").on("click", ".delcarbtn", function() {
+                var carcanvas = $(this).prev()[0];
+                var carctx = carcanvas.getContext("2d");
+                carctx.clearRect(0,0,carcanvas.width,carcanvas.height);
+                $(this).prev().prev().val('');
+                $(this).prev().prev().prev().val('');
+                drwcar = false;
+                noindex =$(this).parent().parent().index();
+                isdelcar = true;
+                del(noindex);
+            });
+            $("body").on("click", ".delnobtn", function() {
+                if($(this).prev().prev().val()==''){
+                    drwcar = true;
+                    noindex = $(this).parent().parent().index();
+                }else {
+                    var carnocanvas = $(this).prev()[0];
+                    var carnoctx = carnocanvas.getContext("2d");
+                    carnoctx.clearRect(0, 0, carnocanvas.width, carnocanvas.height);
+                    $(this).prev().prev().val('');
+                    $(this).prev().prev().prev().val('');
+                    drwcar = true;
+                    noindex = $(this).parent().parent().index();
+                    delcarno(noindex);
+                }
+            });
+
+
+
+
+            $("#sub").blur(function(){
+                $("#firstresult2").attr("checked","checked");
+                $("#secondresult2").attr("checked","checked");
+
+            })
+            function getCars(target){
+                var json={};
+                json.cars=[];
+                target.find(".car").each(function (index) {
+                    var carno = $(this).find(`[name='carno']`).val();
+                    // if(carno==''){
+                    //     alert("保存失败，车牌号不能为空");
+                    //     $(this).find(`[name='carno']`).focus();
+                    //     json='';
+                    //     return false;
+                    // }
+                    var goods='';
+                    $(this).find(`[name='goods`+index+`']:checked`).each(function() {
+                        goods+=$(this).val()+',';
+                    });
+                    if(goods.length>1){
+                        goods = goods.substr(0,goods.length-1);
+                    }
+                    var color=$(this).find(`[name='color`+index+`']:checked`).val();
+                    if(color=="其他"){
+                        color=$(this).find(`[name='tcolor`+index+`']`).val();
+                    }
+                    var type=$(this).find(`[name='type`+index+`']:checked`).val();
+                    var brand=$(this).find(`[name='brand`+index+`']:checked`).val();
+                    if(brand=="其他"){
+                        brand=$(this).find(`[name='tbrand`+index+`']`).val();
+                    }
+                    var lefttop = $(this).find(`[name='lefttop']`).val();
+                    var rightbottom=$(this).find(`[name='rightbottom']`).val();
+                    // if(lefttop==''||rightbottom==''){
+                    //     alert("保存失败，车牌坐标不能为空");
+                    //     $(this).find(`[name='carno']`).focus();
+                    //     json='';
+                    //     return false;
+                    // }
+                    var left ="";
+                    var top = "";
+                    var right="";
+                    var bottom="";
+                    var leftbottom ="";
+                    var righttop ="";
+
+                    if(lefttop!=""&&rightbottom!="") {
+                        left = lefttop.split(",")[0];
+                        top = lefttop.split(",")[1];
+                        right = rightbottom.split(",")[0];
+                        bottom = rightbottom.split(",")[1];
+                        leftbottom = left+","+bottom;
+                        righttop =right+","+top;
+                    }else{
+                        lefttop="";
+                        rightbottom="";
+                    }
+
+                    var carleft ="";
+                    var cartop = "";
+                    var carright="";
+                    var carbottom="";
+                    var carleftbottom ="";
+                    var carrighttop ="";
+
+
+                    var carlefttop = $(this).find(`[name='carlefttop']`).val();
+                    var carrightbottom=$(this).find(`[name='carrightbottom']`).val();
+
+                    if(carlefttop!=""&&carrightbottom!="") {
+                        carleft = carlefttop.split(",")[0];
+                        cartop = carlefttop.split(",")[1];
+                        carright = carrightbottom.split(",")[0];
+                        carbottom = carrightbottom.split(",")[1];
+                        carleftbottom = carleft+","+carbottom;
+                        carrighttop =carright+","+cartop;
+                    }else{
+                        carlefttop="";
+                        carrightbottom="";
+                    }
+
+                    json.cars.push({
+                        carno: carno,
+                        lefttop:lefttop,
+                        righttop:righttop,
+                        rightbottom: rightbottom,
+                        leftbottom:leftbottom,
+                        carlefttop:carlefttop,
+                        carrighttop:carrighttop,
+                        carrightbottom: carrightbottom,
+                        carleftbottom:carleftbottom,
+                        brand: brand,
+                        color: color,
+                        type:type,
+                        goods:goods
+                    })
+                });
+                return json;
+
+            }
+
+        img.onload = function () //确保图片已经加载完毕
+        {
+            drawimg();
+            if(initJson.cars){
+                //setperson($("#personinfo"),initJson.persons);
+                setcar($("#carsinfo"),initJson.cars);
+            }
+
+            $('.subbtn').removeAttr("disabled");// Enable，JQuery写法
+            if(role=='2') {
+                countTime();
+            }else{
+                $("#sub").focus();
+            }
+        }
+
+
+        /* 为canvas绑定mouse事件 */
+        $('#thecanvas').mousedown(function(e){
+            flag = true;
+            x = e.offsetX; // 鼠标落下时的X
+            y = e.offsetY; // 鼠标落下时的Y
+            if(isscale){
+                isscale=false;
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // 再次绘制图片到画布上
+                //	.drawImage(img, 0, 0);
+                drawimg();
+            }
+        }).mouseup(function(e){
+            flag = false;
+            if(drw){
+                saverect(x*2,y*2,(e.offsetX-x)*2,(e.offsetY-y)*2);
+            }
+            drw=false;
+        }).mousemove(function(e){
+            drawRect(e); // 绘制方法
+            if(isscale){
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // 再次绘制图片到画布上
+                drawimg();
+                var x = e.offsetX;
+                var y = e.offsetY; // 开始绘制放大区域
+                drawscaleImage(img,x,y);
+            }
+        }).mouseleave(function(e){
+            isscale = true;
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // 再次绘制图片到画布上
+            drawimg();
+        });
+        function drawRect(e){
+            if(flag&&Math.abs(e.offsetX-x)>1&&Math.abs(e.offsetY-y)>1){
+                drw=true;
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                drawimg();
+                ctx.strokeStyle = "#00FF00";
+                ctx.beginPath();
+                ctx.strokeRect(x*2,y*2,(e.offsetX-x)*2,(e.offsetY-y)*2);
+            }
+        }
+
+        function saverect(x,y,w,h){
+            var rect = {x:x,y:y,w:w,h:h};
+            if(!drwcar) {
+                carrectarry.push(rect);
+            }else{
+                carnorectarry.push(rect);
+            }
+            showrect(x,y,w,h);
+        }
+        function showrect(x,y,w,h){
+            if(drwcar==false){//判断框的是车
+                if(!isdelcar){
+                    noindex =  addcar($('#carsinfo'));
+                }
+                isdelcar=false;
+                drawclipimg(x,y,w,h,$('#canvascar'+noindex));
+                //drwcar=true;
+            }else{//车牌
+                drawclipimg(x,y,w,h,$('#canvascarno'+noindex));
+                drwcar = false;
+            }
+        }
+        function drawclipimg(x,y,w,h,canvas){
+            var ww=w,hh=h,sx = x,sy = y;
+            if(w<0){
+                ww=-w;
+                sx = x+w;
+            }
+            if(h<0){
+                hh=-h;
+                sy = y+h;
+            }
+            canvas.prev().val((sx*scale+ww*scale)+","+(sy*scale+hh*scale));
+            canvas.prev().prev().val(sx*scale+","+sy*scale);
+            var scanvas = canvas[0];
+            scanvas.setAttribute("width",ww*scale*2);
+            scanvas.setAttribute("height",hh*scale*2);
+            scanvas.style.width = ww*scale + 'px';
+            scanvas.style.height = hh*scale + 'px';
+            var sctx = scanvas.getContext("2d");
+            sctx.scale(2,2);
+            sctx.drawImage(simg,sx*scale,sy*scale,ww*scale,hh*scale,0,0,ww*scale,hh*scale);
+            canvas.prev().focus();
+        }
+        function del(l){
+            carrectarry.splice(l, 1);
+            if(!isdelcar) {
+                carnorectarry.splice(l, 1);
+            }
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.drawImage(img,0,0,width,height);
+            for ( var i = 0; i <carrectarry.length; i++){
+                var rect = carrectarry[i];
+                ctx.strokeStyle = "#00FF00";
+                ctx.beginPath();
+                ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);
+            }
+            for ( var i = 0; i <carnorectarry.length; i++){
+                var rect = carnorectarry[i];
+                ctx.strokeStyle = "#00FF00";
+                ctx.beginPath();
+                ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);
+            }
+
+        }
+        function delcarno(l){
+            carnorectarry.splice(l, 1);
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.drawImage(img,0,0,width,height);
+            for ( var i = 0; i <carrectarry.length; i++){
+                var rect = carrectarry[i];
+                ctx.strokeStyle = "#00FF00";
+                ctx.beginPath();
+                ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);
+            }
+            for ( var i = 0; i <carnorectarry.length; i++){
+                var rect = carnorectarry[i];
+                ctx.strokeStyle = "#00FF00";
+                ctx.beginPath();
+                ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);
+            }
+
+        }
+        function drawimg() {
+            width=img.width/scale;
+            height=img.height/scale;
+            canvas.setAttribute("width",width*2);
+            canvas.setAttribute("height",height*2);
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+            $("#main").css({"width":width/1.8+'px',"height":height/1.8+"px"});
+            ctx.drawImage(img,0,0,width,height);
+            for ( var i = 0; i <carrectarry.length; i++){
+                var rect = carrectarry[i];
+                ctx.strokeStyle = "#00FF00";
+                ctx.beginPath();
+                ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);
+            }
+            for ( var i = 0; i <carnorectarry.length; i++){
+                var rect = carnorectarry[i];
+                ctx.strokeStyle = "#00FF00";
+                ctx.beginPath();
+                ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);
+            }
+
+        }
+        function drawscaleImage(img,x,y){
+
+            //ctx.drawImage(img,x*scale-80,y*scale-80,160,160,x-80,y-80,160,160);
+            //ctx.drawImage(img,(x*scale)*2-160,(y*scale)*2-160,320,320,x*2-160,y*2-160,320,320);
+            ctx.scale(2,2);
+            ctx.drawImage(img,(x*scale)*2-80,(y*scale)*2-80,160,160,x-80,y-80,160,160);
+        }
+            $('.subbtn').click(function(){
+                var resultJson = getCars($("#carsinfo"));
+                if(resultJson=='') {
+                    return false;
+                }else {
+                    $("#carsdata").val(JSON.stringify(resultJson));
+                    $('form').submit();
+                }
+            });
+        $('#upload').click(function(){
+            var formData = new FormData();
+            formData.append('file', $('#file')[0].files[0]);
+            $.ajax({
+                url: '[[@{../admin/recognizeimage}]]',
+                type: 'POST',
+                cache: false,
+                data: formData,
+                processData: false,
+                contentType: false
+            }).done(function(res) {
+                //alert(res.msg);
+                $('#carbaidu').html(res.msg)
+            }).fail(function(res) {
+                $('#carbaidu').html(res);
+            });
+        });
+
+    });
+
+    </script>
+</head>
+
+<body>
+<div layout:fragment="content">
+            <div id="page-wrapper">
+                <!-- /.row -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                做任务
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label>文件名：</label>
+                                        <a th:href="${task.folder+task.filename}" target="_blank"> <span th:text="${task.filename}"></span></a>
+                                        <label>任务编号：</label>
+                                        <span th:text="${task.taskno}"></span>
+                                        <label>任务类型</label>
+                                        <span th:switch="${taskbatch.type}">
+                                            <span th:case="'1'">笔录</span>
+                                            <span th:case="'2'">车牌识别</span>
+                                            <span th:case="'3'">车辆信息</span>
+                                            <span th:case="'4'">文字录入</span>
+                                             <span th:case="'5'">行人信息</span>
+                                        </span>
+                                        <label>任务描述：</label>
+                                        <span th:text="${taskbatch.descr}"></span>
+                                        <span id="overtime" class="overtime"></span>
+                                    </div>
+                                    <div class="doc" id="docdiv">
+                                        <div id="main" style="overflow: hidden"><canvas id="thecanvas"></canvas></div>
+                                        <div class="form-group" >
+                                            <input class="form-control" id="file" type="file" name="file"/>
+                                            <button class="form-control" id="upload" type="button" onclick="fileUpload()">识别图片</button>
+                                        </div>
+                                        <div id="carbaidu" class="carbaidu"></div>
+                                    </div>
+
+                                    <div class="col-lg-6 editor" >
+                                            <form name="frm" th:action="@{../admin/savecarinfo}" method="post">
+                                                <input type="hidden" name="taskno" id="taskno" th:value="${task.taskno}">
+                                                <input type="hidden" name="carsdata" id="carsdata">
+                                               <div id="carsinfo">
+
+                                               </div>
+
+                                                <th:block th:if="${session.ssysuser.role=='3'}">
+                                                    <div class="form-group">
+                                                        <label>是否合格：</label>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="firstresult" id="firstresult1" value="1" checked="checked">是
+                                                            </label>
+                                                        </div>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="firstresult" id="firstresult2" value="0">否
+                                                            </label>
+                                                        </div>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="firstresult" id="firstresult3" value="-1">重做
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </th:block>
+                                                <th:block th:if="${session.ssysuser.role=='4'}">
+                                                    <div class="form-group">
+                                                        <label>是否合格：</label>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="secondresult" id="secondresult1" value="1" checked="checked">是
+                                                            </label>
+                                                        </div>
+
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="secondresult" id="secondresult2" value="0">否
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </th:block>
+                                                <th:block th:if="${session.ssysuser.role=='2'||session.ssysuser.role=='3'||session.ssysuser.role=='4'}">
+                                                    <input id="sub" class="subbtn" type="button" value="保 存">
+
+                                                </th:block>
+                                      </form>
+
+                                    </div>
+                                </div>
+                                <!-- /.row (nested) -->
+                            </div>
+                            <!-- /.panel-body -->
+                        </div>
+                        <!-- /.panel -->
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+                <!-- /.row -->
+            </div>
+        <!-- /#page-wrapper -->
+</div>
+
+
+
+</body>
+
+</html>
