@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout" layout:decorator="fragments/layout">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>任务管理</title>
+    <style>
+        .doc{
+            float: left;width:60%; height:500px;overflow-y:auto;
+        }
+        .editor{
+            float: right;width:40%; height:500px;overflow-y:auto;
+        }
+        .group{
+            background: #f5f9f8; border: #c4c4c7 solid 1px;  border-radius: 5px; padding:5px;
+        }
+        .addbtn{
+            color: #67bf81;
+            border: solid 1px #cbdcc3;
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .addbtnbig{
+            color: #67bf81;
+            border: solid 1px #cbdcc3;
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            font-size:18px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .margintop8{
+            margin-top: 8px;
+        }
+        .delbtn{
+            color: #795548;
+            border: solid 1px #eeefed;
+            width: 100px;
+            padding: 5px;
+            margin: 2px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .subbtn{
+            color: #F44336;
+            border: solid 1px  #efe0e0;
+            width: 100px;
+            padding: 5px;
+            margin: 2px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .overtime{
+            color: #ff252f;
+            font-size: 20px;
+        }
+    </style>
+    <script type="application/javascript">
+
+        function countTime() {
+            //获取当前时间
+            var date = new Date();
+            var now = date.getTime();
+            //设置截止时间
+            var endDate = new Date("[[${task.createtime}]]");
+            var end = endDate.getTime()+3*60*1000;
+            //时间差
+            var leftTime = end-now;
+            //定义变量 d,h,m,s保存倒计时的时间
+            var s=0;
+            if (leftTime&&leftTime>=0) {
+                s = Math.floor(leftTime/1000);
+            }else{
+                s=0;
+                $.ajax({
+                    type: "POST",
+                    url: "[[@{../admin/overtask(taskno=${task.taskno})}]]",
+                    data: "",
+                    success: function(data){
+                        window.location.href="[[@{../admin/dotask(batchno=${taskbatch.batchno})}]]";
+                    }
+                });
+            }
+
+            $("#overtime").html("剩余时间："+s+"秒") ;
+            //递归每秒调用countTime方法，显示动态时间效果
+            setTimeout(countTime,1000);
+
+        }
+        $(document).ready(function(e) {
+            var filename = "[[${task.folder}]]"+"[[${task.filename}]]";
+            $("#img").attr('src',filename);
+            $("#aimg").attr('href',filename);
+            $('form').submit(function(){
+                var text = $("#text").val();
+                if(text.trim()==""){
+                    alert("内容不能为空！");
+                    $("#text").focus();
+                    return false;
+                }
+                return true;
+            });
+            var role = "[[${session.ssysuser.role}]]";
+            if(role=='2'){
+                countTime();
+            }else{
+                $("#sub").focus();
+            }
+        });
+
+    </script>
+</head>
+
+<body>
+<div layout:fragment="content">
+            <div id="page-wrapper">
+                <!-- /.row -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                做任务
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label>文件名：</label>
+                                        <span th:text="${task.filename}"></span>
+                                        <label>任务编号：</label>
+                                        <span th:text="${task.taskno}"></span>
+                                        <label>任务类型</label>
+                                        <span th:switch="${taskbatch.type}">
+                                            <span th:case="'1'">笔录</span>
+                                            <span th:case="'2'">车牌识别</span>
+                                            <span th:case="'3'">车辆信息</span>
+                                            <span th:case="'4'">文字录入</span>
+                                        </span>
+                                        <label>任务描述：</label>
+                                        <span th:text="${taskbatch.descr}"></span>
+                                        <span id="overtime" class="overtime"></span>
+                                    </div>
+                                    <div class="doc" id="docdiv">
+                                        <a id="aimg" href="" target="_blank"><img id="img" width="98%"></a>
+                                    </div>
+
+                                    <div class="col-lg-6 editor" >
+                                        <div class="group">
+                                            <form name="frm" th:action="@{../admin/savetext}" method="post">
+                                                <input type="hidden" id="taskno" name="taskno" th:value="${task.taskno}">
+                                                <input type="hidden" id="filename" name="filename" th:value="${task.filename}">
+
+                                                <div class="form-group">
+                                                    <label>文字内容：</label>
+                                                    <textarea rows="3" class="form-control" name="text" id="text" th:text="${text}"></textarea>
+                                                </div>
+                                                <th:block th:if="${session.ssysuser.role=='3'}">
+                                                    <div class="form-group">
+                                                        <label>是否合格：</label>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="firstresult" id="firstresult1" value="1" checked="checked">是
+                                                            </label>
+                                                        </div>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="firstresult" id="firstresult2" value="0">否
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </th:block>
+                                                <th:block th:if="${session.ssysuser.role=='4'}">
+                                                    <div class="form-group">
+                                                        <label>是否合格：</label>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="secondresult" id="secondresult1" value="1" checked="checked">是
+                                                            </label>
+                                                        </div>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="secondresult" id="secondresult2" value="0">否
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </th:block>
+                                             <th:block th:if="${session.ssysuser.role=='2'||session.ssysuser.role=='3'||session.ssysuser.role=='4'}">
+                                                 <input id="sub" class="subbtn" type="submit" value="保 存">
+                                                 <input class="delbtn" type="reset" value="重 置">
+                                             </th:block>
+
+                                        </form>
+                                     </form>
+                                    </div>
+
+                                </div>
+                                <!-- /.row (nested) -->
+                            </div>
+                            <!-- /.panel-body -->
+                        </div>
+                        <!-- /.panel -->
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+                <!-- /.row -->
+            </div>
+        <!-- /#page-wrapper -->
+</div>
+
+
+
+</body>
+
+</html>

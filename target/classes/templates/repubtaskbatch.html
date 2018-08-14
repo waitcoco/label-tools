@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout" layout:decorator="fragments/layout">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>升级任务批次</title>
+    <script type="application/javascript">
+        function checkfrm() {
+            var title=$.trim($("#title").val())
+            if(title==""){
+                alert("标题不能为空");
+                $("#title").focus();
+                return false;
+            }
+
+            var descr=$.trim($("#descr").val())
+            if(descr==""){
+                alert("描述不能为空");
+                $("#descr").focus();
+                return false;
+            }
+
+
+            return true;
+        }
+
+    </script>
+</head>
+
+<body>
+<div layout:fragment="content">
+            <div id="page-wrapper">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">任务批次管理</h1>
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+                <!-- /.row -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading" th:text="${header}">
+                                升级任务批次
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <div th:text="${msg}" style="color: #ff201e;"></div>
+                                        <form role="form" th:action="@{../admin/repubtaskbatch}" method="post" onsubmit="return checkfrm()">
+                                            <input type="hidden" th:value="${batchno}" name="batchno" id="batchno">
+                                            <div class="form-group">
+                                                <label>标题：</label>
+                                                <input id="title" name="title" class="form-control" placeholder="标题" type="text" th:value="${title}">
+                                            </div>
+                                                <input id="prebatchno" name="prebatchno" th:value="${prebatchno}" type="hidden">
+                                            <div class="form-group">
+                                                <label>任务描述：</label>
+                                                <textarea rows="10" class="form-control" name="descr" id="descr" th:text="${descr}"></textarea>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>任务类型</label>
+                                                <select id="type" name="type" class="form-control">
+                                                    <option value="3" th:selected="${type=='3'}">车辆信息</option>
+                                                    <option value="5" th:selected="${type=='5'}">行人信息</option>
+                                                </select>
+                                            </div>
+
+                                            <button type="submit" class="btn btn-default">保 存</button>
+                                            <button type="reset" class="btn btn-default">重 置</button>
+                                        </form>
+
+                                    </div>
+
+                                </div>
+                                <!-- /.row (nested) -->
+                            </div>
+                            <!-- /.panel-body -->
+                        </div>
+                        <!-- /.panel -->
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+                <!-- /.row -->
+            </div>
+        <!-- /#page-wrapper -->
+</div>
+
+
+
+</body>
+
+</html>

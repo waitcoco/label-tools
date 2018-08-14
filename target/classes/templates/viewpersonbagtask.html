@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout" layout:decorator="fragments/layout">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>任务管理</title>
+    <style>
+        .doc{
+            float: left;width:60%; overflow-y:auto;
+        }
+        .editor{
+            float: right;width:40%; height:500px;overflow-y:auto;
+        }
+        .group{
+           margin-top: 10px; background: #f5f9f8; border: #c4c4c7 solid 1px;  border-radius: 5px; padding:5px;
+        }
+        .btn{
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .addbtn{
+            color: #67bf81;
+            border: solid 1px #cbdcc3;
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .addbtnbig{
+            color: #67bf81;
+            border: solid 1px #cbdcc3;
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            font-size:18px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .margintop8{
+            margin-top: 8px;
+        }
+        .delbtn,.delperbtn{
+            color: #795548;
+            border: solid 1px #eeefed;
+            width: 100px;
+            padding: 5px;
+            margin: 2px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .subbtn{
+            color: #F44336;
+            border: solid 1px  #efe0e0;
+            width: 100px;
+            padding: 5px;
+            margin: 2px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .brand{
+            height:200px;overflow-y:auto;
+        }
+        .mao{
+            padding: 4px;
+        }
+        .overtime{
+            color: #ff252f;
+            font-size: 20px;
+        }
+        .clipimg{
+            margin: 5px;
+        }
+    </style>
+    <script type="application/javascript">
+   $(document).ready(function(e) {
+        const initJson=JSON.parse("[[${segmentJson}]]".replace(/&quot;/gi, '"'));
+        console.log(JSON.stringify(initJson, null, 2));
+       const scale=1.5;
+       var rectarry=new Array();
+       loadFromJson(initJson);
+       var canvas = document.getElementById("thecanvas");
+       var ctx = canvas.getContext("2d");
+
+       var simg=new Image()
+       var filename = "[[${task.folder}]]"+"[[${task.filename}]]";
+       simg.src=filename;
+
+       var img=new Image()
+       var width=0;
+       var height=0;
+       var isscale=true;
+       img.src=filename;
+
+
+        function addperson(target){
+            var i = target.find('.person').length;
+            var personhtml = '<div class="person group">'+
+                '<label>人包信息</label>'+
+                '<div class="form-group">'+
+                '<label>人/包坐标</label>'+
+                '<input class="offseti form-control"  name="lefttop'+i+'" placeholder="左上角坐标" readonly="readonly"> '+
+                '<input class="offseti form-control"  name="rightbottom'+i+'" placeholder="右下角坐标" readonly="readonly">'+
+                '<canvas class="clipimg" id="canvas'+i+'"></canvas>' +
+                '<div class="delperbtn">重框</div>'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>是否报警</label>'+
+                '<input type="radio"  name="alert'+i+'" id="shape2" value="是" checked="checked">是'+
+                '<input type="radio"  name="alert'+i+'" id="shape1" value="否" >否'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>类型</label>'+
+                '<input class="nameradio" type="radio"  name="name'+i+'" id="shape2" value="person" checked="checked">人'+
+                '<input class="nameradio" type="radio"  name="name'+i+'" id="shape1" value="bag" >包'+
+                '</div>'+
+
+                '<div class="personinfo" id="per'+i+'">'+
+                '<div class="form-group">'+
+                '<label>体型</label>'+
+                '<input type="radio"  name="bodyType'+i+'" id="shape2" value="匀称" checked="checked">匀称'+
+                '<input type="radio"  name="bodyType'+i+'" id="shape1" value="胖" >胖'+
+                '<input type="radio"  name="bodyType'+i+'" id="shape2" value="瘦">瘦'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>性别</label>'+
+                '<input type="radio"  name="gender'+i+'" id="sex1" value="男" checked="checked">男'+
+                '<input type="radio"  name="gender'+i+'" id="sex2" value="女">女'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>年龄段</label>'+
+                '<input type="radio"  name="age'+i+'" id="age1" value="成年人" checked="checked">成年人'+
+                '<input type="radio"  name="age'+i+'" id="age2" value="老年人">老年人'+
+                '<input type="radio"  name="age'+i+'" id="age3" value="未成年人">未成年人'+
+                '<input type="radio"  name="age'+i+'" id="age4" value="婴幼儿" >婴幼儿'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>上装颜色</label>'+
+                '<input type="radio"  name="coatColor'+i+'" id="color1" value="黑色" checked="checked">黑色'+
+                '<input type="radio"  name="coatColor'+i+'" id="color2" value="白色">白色'+
+                '<input type="radio"  name="coatColor'+i+'" id="color3" value="灰色">灰色'+
+                '<input type="radio"  name="coatColor'+i+'" id="color4" value="黄色">黄色'+
+                '<input type="radio"  name="coatColor'+i+'" id="color5" value="粉色">粉色'+
+                '<input type="radio"  name="coatColor'+i+'" id="color6" value="红色">红色'+
+                '<input type="radio"  name="coatColor'+i+'" id="color7" value="紫色">紫色'+
+                
+                '<input type="radio"  name="coatColor'+i+'" id="color8" value="绿色">绿色'+
+
+                '<input type="radio"  name="coatColor'+i+'" id="colora9" value="棕色">棕色'+
+                '<input type="radio"  name="coatColor'+i+'" id="colora10" value="橙色">橙色'+
+              
+                '<input type="radio"  name="coatColor'+i+'" id="color10" value="蓝色">蓝色'+
+                '<input type="radio"  name="coatColor'+i+'" id="color11" value="青色">青色'+
+                '<input type="radio"  name="coatColor'+i+'" id="color12" value="其他">其他'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>下装颜色</label>'+
+                '<input type="radio"  name="pantsColor'+i+'" id="colora1" value="黑色" checked="checked">黑色'+
+                '<input type="radio"  name="pantsColor'+i+'" id="colora2" value="白色">白色'+
+                '<input type="radio"  name="pantsColor'+i+'" id="colora3" value="灰色">灰色'+
+                '<input type="radio"  name="pantsColor'+i+'" id="colora4" value="黄色">黄色'+
+                '<input type="radio"  name="pantsColor'+i+'" id="colora5" value="粉色">粉色'+
+                '<input type="radio"  name="pantsColor'+i+'" id="colora6" value="红色">红色'+
+                '<input type="radio"  name="pantsColor'+i+'" id="colora7" value="紫色">紫色'+
+
+                '<input type="radio"  name="pantsColor'+i+'" id="colora8" value="绿色">绿色'+
+
+                '<input type="radio"  name="pantsColor'+i+'" id="colora9" value="棕色">棕色'+
+                '<input type="radio"  name="pantsColor'+i+'" id="colora10" value="橙色">橙色'+
+                '<input type="radio"  name="pantsColor'+i+'" id="colora10" value="蓝色">蓝色'+
+                '<input type="radio"  name="pantsColor'+i+'" id="colora11" value="青色">青色'+
+                '<input type="radio"  name="pantsColor'+i+'" id="colora12" value="其他">其他'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>上衣款式</label>'+
+                '<input type="radio"  name="coatType'+i+'" id="colora1" value="长袖" checked="checked">长袖'+
+                '<input type="radio"  name="coatType'+i+'" id="colora2" value="短裤">短袖'+
+                '<input type="radio"  name="coatType'+i+'" id="colora3" value="裙子">裙子'+
+                '<input type="radio"  name="coatType'+i+'" id="colora12" value="其他">其他'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>下装款式</label>'+
+                '<input type="radio"  name="pantsType'+i+'" id="colora1" value="长裤" checked="checked">长裤'+
+                '<input type="radio"  name="pantsType'+i+'" id="colora2" value="短裤">短裤'+
+                '<input type="radio"  name="pantsType'+i+'" id="colora3" value="裙子">裙子'+
+                '<input type="radio"  name="pantsType'+i+'" id="colora12" value="其他">其他'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>行动状态</label>'+
+                '<input type="radio"  name="movementState'+i+'" id="movement1" value="走" checked="checked">走'+
+                '<input type="radio"  name="movementState'+i+'" id="movement2" value="站">站'+
+                '<input type="radio"  name="movementState'+i+'" id="movement2" value="跑">跑'+
+                '<input type="radio"  name="movementState'+i+'" id="movement4" value="坐">坐'+
+                '<input type="radio"  name="movementState'+i+'" id="movement3" value="骑行">骑行'+
+                '<input type="radio"  name="movementState'+i+'" id="movement4" value="翻墙">翻墙'+
+                '<input type="radio"  name="movementState'+i+'" id="movement5" value="其他">其他'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>发型</label>'+
+                '<input type="radio"  name="hairstyle'+i+'" id="colora1" value="长发" checked="checked">长发'+
+                '<input type="radio"  name="hairstyle'+i+'" id="colora2" value="短发">短发'+
+                '<input type="radio"  name="hairstyle'+i+'" id="colora12" value="其他">其他'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>手拎物</label>'+
+                '<input type="radio"  name="handbag'+i+'" id="colora1" value="无" checked="checked">无'+
+                '<input type="radio"  name="handbag'+i+'" id="colora2" value="有">有'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>肩挎包' +
+                '</label>'+
+                '<input type="radio"  name="shoulderBag'+i+'" id="colora1" value="无" checked="checked">无'+
+                '<input type="radio"  name="shoulderBag'+i+'" id="colora2" value="有">有'+
+                '</div>'+
+                '</div>'+
+                '<div class="baginfo" id="bag'+i+'" style="display: none">'+
+                '<div class="form-group">'+
+                '<label>颜色</label>'+
+                '<input type="radio"  name="color'+i+'" id="color1" value="黑色" checked="checked">黑色'+
+                '<input type="radio"  name="color'+i+'" id="color2" value="白色">白色'+
+                '<input type="radio"  name="color'+i+'" id="color3" value="灰色">灰色'+
+                '<input type="radio"  name="color'+i+'" id="color4" value="黄色">黄色'+
+                '<input type="radio"  name="color'+i+'" id="color5" value="粉色">粉色'+
+                '<input type="radio"  name="color'+i+'" id="color6" value="红色">红色'+
+                '<input type="radio"  name="color'+i+'" id="color7" value="紫色">紫色'+
+
+                '<input type="radio"  name="color'+i+'" id="color8" value="绿色">绿色'+
+
+                '<input type="radio"  name="color'+i+'" id="colora9" value="棕色">棕色'+
+                '<input type="radio"  name="color'+i+'" id="colora10" value="橙色">橙色'+
+
+                '<input type="radio"  name="color'+i+'" id="color10" value="蓝色">蓝色'+
+                '<input type="radio"  name="color'+i+'" id="color11" value="青色">青色'+
+                '<input type="radio"  name="color'+i+'" id="color12" value="其他">其他'+
+                '</div>'+
+                '<div class="form-group">'+
+                '<label>所属' +
+                '</label>'+
+                '<input type="radio"  name="owner'+i+'" id="colora1" value="无主" checked="checked">无主'+
+                '<input type="radio"  name="owner'+i+'" id="colora2" value="有主">有主'+
+                '</div>'+
+                '</div>'
+                '<div class="delbtn">删除</div>'+
+                '</div>';
+            target.append(personhtml);
+            return i;
+        }
+        function setperson(target,persons){
+
+            target.find(`.person`).each(function(index) {
+                if(persons[index].objectLefttop&&persons[index].objectRightbottom){
+                    $(this).find(`[name='lefttop`+index+`']`).val(persons[index].objectLefttop);
+                    $(this).find(`[name='rightbottom`+index+`']`).val(persons[index].objectRightbottom);
+                    var lt = persons[index].objectLefttop;
+                    var lts = lt.split(",");
+                    var lx = Number(lts[0]);
+                    var ly =  Number(lts[1]);
+                    var yx = persons[index].objectRightbottom;
+                    var yxs = yx.split(",");
+                    var xx = Number(yxs[0]);
+                    var yy = Number(yxs[1]);
+                    var w=xx-lx;
+                    var h=yy-ly;
+                    var scanvas = $('#canvas'+index)[0];
+                    scanvas.setAttribute("width",w*2);
+                    scanvas.setAttribute("height",h*2);
+                    scanvas.style.width = w + 'px';
+                    scanvas.style.height = h + 'px';
+                    var sctx = scanvas.getContext("2d");
+                    sctx.scale(2,2);
+                    sctx.drawImage(simg,lx,ly,w,h,0,0,w,h);
+                }
+                var alert = persons[index].alert?'是':'否';
+                $(this).find(`[name='alert`+index+`'][value='`+alert+`']`).attr("checked",true);
+                $(this).find(`[name='name`+index+`'][value='`+persons[index].object.name+`']`).attr("checked",true);
+                if(persons[index].object.name=='person'){
+                    $("#per"+index).show();
+                    $("#bag"+index).hide();
+                    $(this).find(`[name='bodyType`+index+`'][value='`+persons[index].object.bodyType+`']`).attr("checked",true);
+
+                    $(this).find(`[name='gender`+index+`'][value='`+persons[index].object.gender+`']`).attr("checked",true);
+
+                    $(this).find(`[name='age`+index+`'][value='`+persons[index].object.age+`']`).attr("checked",true);
+
+                    $(this).find(`[name='coatColor`+index+`'][value='`+persons[index].object.coatColor+`']`).attr("checked",true);
+
+                    $(this).find(`[name='pantsColor`+index+`'][value='`+persons[index].object.pantsColor+`']`).attr("checked",true);
+
+                    $(this).find(`[name='movementState`+index+`'][value='`+persons[index].object.movementState+`']`).attr("checked",true);
+
+                    $(this).find(`[name='hairstyle`+index+`'][value='`+persons[index].object.hairstyle+`']`).attr("checked",true);
+
+                    $(this).find(`[name='handbag`+index+`'][value='`+persons[index].object.handbag+`']`).attr("checked",true);
+
+                    $(this).find(`[name='shoulderBag`+index+`'][value='`+persons[index].object.shoulderBag+`']`).attr("checked",true);
+                    $(this).find(`[name='coatType`+index+`'][value='`+persons[index].object.coatType+`']`).attr("checked",true);
+                    $(this).find(`[name='pantsType`+index+`'][value='`+persons[index].object.pantsType+`']`).attr("checked",true);
+
+                }else{
+                    $("#bag"+index).show();
+                    $("#per"+index).hide();
+                    $(this).find(`[name='color`+index+`'][value='`+persons[index].object.color+`']`).attr("checked",true);
+
+                    $(this).find(`[name='owner`+index+`'][value='`+persons[index].object.owner+`']`).attr("checked",true);
+
+                }
+
+
+
+            });
+        }
+        function loadFromJson(json){
+            if(json.framesInfo){
+                //$("#sub").focus();
+                for (var i=0;i<json.framesInfo.length;i++) {
+                    addperson($("#personinfo"));
+                    if(json.framesInfo[i].objectLefttop&&json.framesInfo[i].objectRightbottom){
+                        var lt = json.framesInfo[i].objectLefttop;
+                        var lts = lt.split(",");
+                        var lx = Number(lts[0]);
+                        var ly =  Number(lts[1]);
+                        var yx = json.framesInfo[i].objectRightbottom;
+                        var yxs = yx.split(",");
+                        var xx = Number(yxs[0]);
+                        var yy = Number(yxs[1]);
+                        var w=xx-lx;
+                        var h=yy-ly;
+                        var rect = {x:lx/scale,y:ly/scale,w:w/scale,h:h/scale};
+                        rectarry.push(rect);
+
+                    }
+                }
+
+            }
+        }
+        function countTime() {
+            //获取当前时间
+            var date = new Date();
+            var now = date.getTime();
+            //设置截止时间
+            var endDate = new Date("[[${task.createtime}]]");
+            var end = endDate.getTime()+10*60*1000;
+            //时间差
+            var leftTime = end-now;
+            //定义变量 d,h,m,s保存倒计时的时间
+            var s=0;
+            if (leftTime&&leftTime>=0) {
+                s = Math.floor(leftTime/1000);
+            }else{
+                s=0;
+                $.ajax({
+                    type: "POST",
+                    url: "[[@{../admin/overtask(taskno=${task.taskno})}]]",
+                    data: "",
+                    success: function(data){
+                        window.location.href="[[@{../admin/dotask(batchno=${taskbatch.batchno})}]]";
+                    }
+                });
+            }
+
+            $("#overtime").html("剩余时间："+s+"秒") ;
+            //递归每秒调用countTime方法，显示动态时间效果
+            setTimeout(countTime,1000);
+
+        }
+       var flag = false;
+       var x = 0; // 鼠标开始移动的位置X
+       var y = 0; // 鼠标开始移动的位置Y
+
+       var drw=false;
+       var delindex=-1;
+
+            $("body").on("click", ".addperson",function(){
+                addperson($("#personinfo"));
+                //$(this).before($(".car:first").clone(true).append('<div class="delbtn">删除</div>'))
+            });
+
+            $("body").on("click", ".delbtn", function() {
+                del($(this).parent().index());
+                $(this).parent().remove();
+                delindex=-1;
+            });
+           $("body").on("click", ".delperbtn", function() {
+               delindex = $(this).parent().parent().index();
+               var percanvas = $(this).prev()[0];
+               var perctx = percanvas.getContext("2d");
+               perctx.clearRect(0,0,percanvas.width,percanvas.height);
+               $(this).prev().prev().val('');
+               $(this).prev().prev().prev().val('');
+               del(delindex);
+           });
+           $("body").on("change", ".nameradio", function() {
+               if($(this).val()=='person'){
+                   $(this).parent().next().show();
+                   $(this).parent().next().next().hide();
+               }else{
+                   $(this).parent().next().hide();
+                   $(this).parent().next().next().show();
+               }
+
+           });
+            var role = "[[${session.ssysuser.role}]]";
+            if(role=='2'){
+                countTime();
+            }else{
+                $("#sub").focus();
+            }
+            $("#sub").blur(function(){
+                $("#firstresult2").attr("checked","checked");
+                $("#secondresult2").attr("checked","checked");
+
+            })
+            function getPerson(target){
+                const json={};
+                json.framesInfo=[];
+                target.find(".person").each(function (index) {
+                    var lefttop = $(this).find(`[name='lefttop` + index + `']`).val();
+                    var rightbottom = $(this).find(`[name='rightbottom` + index + `']`).val();
+                    var left = "";
+                    var top = "";
+                    var right = "";
+                    var bottom = "";
+                    var leftbottom = "";
+                    var righttop = "";
+
+                    if (lefttop != "" && rightbottom != "") {
+                        left = lefttop.split(",")[0];
+                        top = lefttop.split(",")[1];
+                        right = rightbottom.split(",")[0];
+                        bottom = rightbottom.split(",")[1];
+                        leftbottom = left + "," + bottom;
+                        righttop = right + "," + top;
+                    } else {
+                        lefttop = "";
+                        rightbottom = "";
+                    }
+                    var alert = $(this).find(`[name='alert` + index + `']:checked`).val() == '是';
+                    var name = $(this).find(`[name='name`+index+`']:checked`).val();
+                    if(name=='person') {
+                        var bodyType = $(this).find(`[name='bodyType` + index + `']:checked`).val();
+                        var gender = $(this).find(`[name='gender` + index + `']:checked`).val();
+                        var age = $(this).find(`[name='age` + index + `']:checked`).val();
+                        var coatColor = $(this).find(`[name='coatColor` + index + `']:checked`).val();
+                        var pantsColor = $(this).find(`[name='pantsColor` + index + `']:checked`).val();
+                        var hairstyle = $(this).find(`[name='hairstyle` + index + `']:checked`).val();
+                        var handbag = $(this).find(`[name='handbag` + index + `']:checked`).val();
+                        var shoulderBag = $(this).find(`[name='shoulderBag` + index + `']:checked`).val();
+                        var movementState = $(this).find(`[name='movementState` + index + `']:checked`).val();
+                        var coatType =  $(this).find(`[name='coatType` + index + `']:checked`).val();
+                        var pantsType =  $(this).find(`[name='pantsType` + index + `']:checked`).val();
+                        json.framesInfo.push({
+                            alert: alert,
+                            objectLefttop: lefttop,
+                            objectRighttop: righttop,
+                            objectRightbottom: rightbottom,
+                            objectLeftbottom: leftbottom,
+                            object: {
+                                name:name,
+                                coatColor: coatColor,
+                                pantsColor: pantsColor,
+                                hairstyle: hairstyle,
+                                handbag: handbag,
+                                shoulderBag: shoulderBag,
+                                movementState: movementState,
+                                bodyType: bodyType,
+                                gender: gender,
+                                age: age,
+                                coatType:coatType,
+                                pantsType:pantsType
+                            }
+                        });
+                    }else{
+                        var color = $(this).find(`[name='color` + index + `']:checked`).val();
+                        var owner = $(this).find(`[name='owner` + index + `']:checked`).val();
+                        json.framesInfo.push({
+                            alert: alert,
+                            objectLefttop: lefttop,
+                            objectRighttop: righttop,
+                            objectRightbottom: rightbottom,
+                            objectLeftbottom: leftbottom,
+                            object:{
+                                name:name,
+                                color:color,
+                                owner:owner
+                            }
+
+                        });
+                    }
+                });
+                return json;
+
+            }
+
+
+            img.onload = function () //确保图片已经加载完毕
+            {
+                drawimg();
+                if(initJson.framesInfo){
+                    setperson($("#personinfo"),initJson.framesInfo);
+                }
+            }
+
+
+            /* 为canvas绑定mouse事件 */
+            $('#thecanvas').mousedown(function(e){
+                flag = true;
+                x = e.offsetX; // 鼠标落下时的X
+                y = e.offsetY; // 鼠标落下时的Y
+                if(isscale){
+                    isscale=false;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height); // 再次绘制图片到画布上
+                    drawimg();
+                }
+            }).mouseup(function(e){
+                flag = false;
+                if(drw){
+                    saverect(x*2,y*2,(e.offsetX-x)*2,(e.offsetY-y)*2);
+                }
+                drw=false;
+            }).mousemove(function(e){
+                drawRect(e); // 绘制方法
+                if(isscale){
+                    ctx.clearRect(0, 0, canvas.width, canvas.height); // 再次绘制图片到画布上
+                    drawimg();
+                    var x = e.offsetX;
+                    var y = e.offsetY; // 开始绘制放大区域
+                    drawscaleImage(img,x,y);
+                }
+            }).mouseleave(function(e){
+                isscale = true;
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // 再次绘制图片到画布上
+                drawimg();
+            });
+            function drawRect(e){
+                if(flag&&Math.abs(e.offsetX-x)>1&&Math.abs(e.offsetY-y)>1){
+                    drw=true;
+                    ctx.clearRect(0,0,canvas.width,canvas.height);
+                    drawimg();
+                    ctx.strokeStyle = "#00FF00";
+                    ctx.beginPath();
+                    ctx.strokeRect(x*2,y*2,(e.offsetX-x)*2,(e.offsetY-y)*2);
+                }
+            }
+            function saverect(x,y,w,h){
+                var rect = {x:x,y:y,w:w,h:h};
+                rectarry.push(rect);
+                showrect(x,y,w,h);
+            }
+            function showrect(x,y,w,h){
+                if(delindex==-1){
+                    delindex =  addperson($('#personinfo'));
+                }
+                drawclipimg(x,y,w,h,$('#canvas'+delindex));
+                delindex = -1;
+            }
+            function drawclipimg(x,y,w,h,canvas){
+                var ww=w,hh=h,sx = x,sy = y;
+                if(w<0){
+                    ww=-w;
+                    sx = x+w;
+                }
+                if(h<0){
+                    hh=-h;
+                    sy = y+h;
+                }
+                canvas.prev().val((sx*scale+ww*scale)+","+(sy*scale+hh*scale));
+                canvas.prev().prev().val(sx*scale+","+sy*scale);
+                var scanvas = canvas[0];
+                scanvas.setAttribute("width",ww*scale*2);
+                scanvas.setAttribute("height",hh*scale*2);
+                scanvas.style.width = ww*scale + 'px';
+                scanvas.style.height = hh*scale + 'px';
+                var sctx = scanvas.getContext("2d");
+                sctx.scale(2,2);
+                sctx.drawImage(simg,sx*scale,sy*scale,ww*scale,hh*scale,0,0,ww*scale,hh*scale);
+                canvas.prev().focus();
+            }
+            function del(l){
+                rectarry.splice(l, 1);
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                ctx.drawImage(img,0,0,width,height);
+                for ( var i = 0; i <rectarry.length; i++){
+                    var rect = rectarry[i];
+                    ctx.strokeStyle = "#00FF00";
+                    ctx.beginPath();
+                    ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);
+                }
+            }
+            function drawimg() {
+                width=img.width/scale;
+                height=img.height/scale;
+                canvas.setAttribute("width",width*2);
+                canvas.setAttribute("height",height*2);
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+                ctx.drawImage(img,0,0,width,height);
+                for ( var i = 0; i <rectarry.length; i++){
+                    var rect = rectarry[i];
+                    ctx.strokeStyle = "#00FF00";
+                    ctx.beginPath();
+                    ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);
+                }
+            }
+            function drawscaleImage(img,x,y){
+                // ctx.drawImage(img,x*scale-80,y*scale-80,160,160,x-80,y-80,160,160);
+                ctx.scale(2,2);
+                ctx.drawImage(img,(x*scale)*2-80,(y*scale)*2-80,160,160,x-80,y-80,160,160);
+            }
+            $('form').submit(function(){
+                const resultJson = getPerson($("#personinfo"));
+                $("#personbagdata").val(JSON.stringify(resultJson));
+            });
+
+        });
+
+    </script>
+</head>
+
+<body>
+<div layout:fragment="content">
+            <div id="page-wrapper">
+                <!-- /.row -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                做任务
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label>文件名：</label>
+                                        <a th:href="${task.folder+task.filename}" target="_blank"> <span th:text="${task.filename}"></span></a>
+                                        <label>任务编号：</label>
+                                        <span th:text="${task.taskno}"></span>
+                                        <label>任务类型</label>
+                                        <span th:switch="${taskbatch.type}">
+                                            <span th:case="'1'">笔录</span>
+                                            <span th:case="'2'">车牌识别</span>
+                                            <span th:case="'3'">车辆信息</span>
+                                            <span th:case="'4'">文字录入</span>
+                                            <span th:case="'5'">行人信息</span>
+                                        </span>
+                                        <label>任务描述：</label>
+                                        <span th:text="${taskbatch.descr}"></span>
+                                        <span id="overtime" class="overtime"></span>
+                                    </div>
+                                    <div class="doc" id="docdiv">
+                                        <div id="main"><canvas id="thecanvas"></canvas></div>
+
+                                   </div>
+
+                                    <div class="col-lg-6 editor" >
+                                            <form name="frm" th:action="@{../admin/savepersonbag}" method="post">
+                                                <input type="hidden" name="taskno" id="taskno" th:value="${task.taskno}">
+                                                <input type="hidden" name="personbagdata" id="personbagdata">
+                                               <div id="personinfo">
+
+                                               </div>
+                                                <th:block th:if="${session.ssysuser.role=='3'}">
+                                                    <div class="form-group">
+                                                        <label>是否合格：</label>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="firstresult" id="firstresult1" value="1" checked="checked">是
+                                                            </label>
+                                                        </div>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="firstresult" id="firstresult2" value="0">否
+                                                            </label>
+                                                        </div>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="firstresult" id="firstresult3" value="-1">重做
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </th:block>
+                                                <th:block th:if="${session.ssysuser.role=='4'}">
+                                                    <div class="form-group">
+                                                        <label>是否合格：</label>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="secondresult" id="secondresult1" value="1" checked="checked">是
+                                                            </label>
+                                                        </div>
+                                                        <div class="radio">
+                                                            <label>
+                                                                <input type="radio"  name="secondresult" id="secondresult2" value="0">否
+                                                            </label>
+                                                        </div>
+
+                                                    </div>
+                                                </th:block>
+                                                <th:block th:if="${session.ssysuser.role=='2'||session.ssysuser.role=='3'||session.ssysuser.role=='4'}">
+                                                    <input id="sub" class="subbtn" type="submit" value="保 存">
+                                                </th:block>
+                                      </form>
+
+                                    </div>
+                                </div>
+                                <!-- /.row (nested) -->
+                            </div>
+                            <!-- /.panel-body -->
+                        </div>
+                        <!-- /.panel -->
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+                <!-- /.row -->
+            </div>
+        <!-- /#page-wrapper -->
+</div>
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout" layout:decorator="fragments/layout">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>用户月任务统计</title>
+       <style>
+        .point{
+            cursor:pointer;
+        }
+        .dateicon {background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAASAgMAAAA1aVZ3AAAACVBMVEUAAAD///9nyrNdI4MmAAAAAXRSTlMAQObYZgAAAChJREFUCNdjWAUCCxjg9DQgtTKBAUN8aigQJGCho6KiYDSJ8ggaYR8Ao74zAKjm+cYAAAAASUVORK5CYII="); background-repeat:no-repeat;background-position: right center;}
+    </style>
+    <script type="application/javascript">
+
+        $(function () {
+            jeDate("#month",{
+                format:"YYYY-MM",
+                isTime:false,
+                isToday:true,
+                minDate:"2018-01",
+                donefun: function(obj) {
+                    console.log(obj.val);
+                    $("form").submit();
+                }
+            })
+        });
+
+    </script>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div id="page-wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">任务管理</h1>
+            </div>
+            <!-- /.col-lg-12 -->
+        </div>
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        用户月任务统计
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        <div class="search">
+                            <form th:action="@{../admin/monthtasklist}">
+                              <div class="form-group" >
+                                  <label>选择月份</label><input class="dateicon" id="month" name="month" type="text" placeholder="请选择"  readonly="readonly" th:value="${month}">
+                              </div>
+
+                            </form>
+                        </div>
+                        <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example">
+                            <thead>
+                            <tr>
+
+                                <th>用户姓名</th>
+
+                                <th>角色</th>
+                                <th>完成数</th>
+                                <th>成功数</th>
+                                <th>失败数</th>
+                                <th>失败率</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            <tr  th:each="m,iterStat : ${monthtaskList}" th:class="${iterStat.odd}?'odd gradeX':'even gradeC'">
+                                <td th:text="${m.sysuser.name}"></td>
+
+                                <th:block th:switch="${m.sysuser.role}">
+                                    <td th:case="'1'">管理员</td>
+                                    <td th:case="'2'">标注员</td>
+                                    <td th:case="'3'">初审员</td>
+                                    <td th:case="'4'">复审员</td>
+                                </th:block>
+                                <td th:text="${m.donum}"></td>
+                                <td th:text="${m.successnum}"></td>
+                                <td th:text="${m.failnum}"></td>
+                                <td th:text="${m.failrate}"></td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <!-- /.panel -->
+            </div>
+            <!-- /.col-lg-12 -->
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /#page-wrapper -->
+
+    <script>
+        $(document).ready(function() {
+            $('#dataTables-example').DataTable({
+                responsive: true
+            });
+        });
+    </script>
+</div>
+
+
+</body>
+
+</html>

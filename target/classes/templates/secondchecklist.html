@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout" layout:decorator="fragments/layout">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>任务列表</title>
+    <!-- DataTables CSS -->
+    <link th:href="@{/static/vendor/datatables-plugins/dataTables.bootstrap.css}" rel="stylesheet">
+
+    <!-- DataTables Responsive CSS -->
+    <link th:href="@{/static/vendor/datatables-responsive/dataTables.responsive.css}" rel="stylesheet">
+    <style>
+        .allok{float: left;color: #1E9FFF; cursor:pointer; padding: 10px}
+
+    </style>
+    <script type="application/javascript">
+        function deltaskbatch(batchno) {
+            /*[[@{相对地址}]]*/
+            var url = '[[@{../admin/deltaskbatch}]]'+'?batchno='+batchno;
+            if(confirm("确定要删除该任务批次吗？")){
+                window.location.href=url;
+            }
+        }
+        $(document).ready(function(e) {
+            $(document).keypress(function(e) {
+                if($(".checka").length>0){
+                    var eCode = e.keyCode ? e.keyCode : e.which ? e.which : e.charCode;
+                    if (eCode == 13){
+                        if($(':focus').length==0){
+                            window.location.href=$(".checka:first").attr("href");
+                        }
+                    }
+                }
+            });
+            $(".batchok").click(function () {
+                var tasknos="";
+                $(".tasknocheck").each(function () {
+                    if($(this).prop('checked')){
+                        tasknos+=$(this).val()+",";
+                    }
+                });
+                if(tasknos.length>0){
+                    tasknos = tasknos.substring(0,tasknos.length-1);
+                    $("#tasknos").val(tasknos);
+                    $("#allokform").submit();
+                }
+
+            });
+
+            $("#checkall").click(function () {
+                if($("#checkall").prop('checked')){
+                    $(".tasknocheck").each(function () {
+                        $(this).attr("checked",true);
+                    });
+                }else{
+                    $(".tasknocheck").each(function () {
+                        $(this).attr("checked", false);
+                    });
+                }
+            });
+
+        });
+
+    </script>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div id="page-wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">任务管理</h1>
+            </div>
+            <!-- /.col-lg-12 -->
+        </div>
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading" th:text="${title}">
+
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        <form th:action="@{../admin/batchok}" method="post" name="allokform" id="allokform">
+                            <input type="hidden" name="tasknos" id="tasknos">
+                        <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example">
+                            <thead>
+                            <tr>
+                                <th><input type="checkbox" id="checkall">全选</th>
+                                <th>编号</th>
+                                <th>批次号</th>
+                                <th>标题</th>
+                                <th>接收时间</th>
+                                <th>提交时间</th>
+                                <th>标注员</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            <tr  th:each="m,iterStat : ${taskList}" th:class="${iterStat.odd}?'odd gradeX':'even gradeC'">
+                                <td><input class="tasknocheck" type="checkbox" name="taskno" th:value="${m.taskno}"> </td>
+                                <td th:text="${m.taskno}"></td>
+                                <td th:text="${m.batchno}"></td>
+                                <td th:text="${m.title}"></td>
+                                <td th:text="${m.createtime}"></td>
+                                <td th:text="${m.submittime}"></td>
+                                <td th:text="${m.sysuser.name}"></td>
+                                <td class="center">
+                                    <th:block th:if="${m.status==2}">
+                                        <a class="checka" th:href="@{../admin/viewtask(taskno=${m.taskno})}">检查</a>
+                                    </th:block>
+                                    <th:block th:if="${m.type=='1'}">
+                                        <a th:href="@{../admin/recordresult(taskno=${m.taskno})}">查看结果</a>
+                                    </th:block>
+                                </td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+                            <div class="batchok">全 过</div>
+                        </form>
+
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <!-- /.panel -->
+            </div>
+            <!-- /.col-lg-12 -->
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /#page-wrapper -->
+
+    <script>
+        $(document).ready(function() {
+            $('#dataTables-example').DataTable({
+                responsive: true
+            });
+        });
+    </script>
+</div>
+
+
+</body>
+
+</html>

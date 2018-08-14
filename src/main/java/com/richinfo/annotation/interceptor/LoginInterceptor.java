@@ -17,7 +17,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         if (session.getAttribute(Variable.SESSION_SYSUSER) != null) {
             return true;
         }
-        String url = "../admin/login";
+        String url = "/annotation/admin/login";
         //System.out.println(url);
         response.sendRedirect(url);
         return false;

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout" layout:decorator="fragments/layout">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>任务管理</title>
+    <style>
+        .doc{
+            float: left;width:60%; overflow-y:auto;
+        }
+        .editor{
+            float: right;width:40%; height:500px;overflow-y:auto;
+        }
+        .group{
+            margin-top: 10px; background: #f5f9f8; border: #c4c4c7 solid 1px;  border-radius: 5px; padding:5px;
+        }
+        .btn{
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .addbtn{
+            color: #67bf81;
+            border: solid 1px #cbdcc3;
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .addbtnbig{
+            color: #67bf81;
+            border: solid 1px #cbdcc3;
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            font-size:18px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .margintop8{
+            margin-top: 8px;
+        }
+        .delbtn,.delnobtn,.delcarbtn{
+            color: #795548;
+            border: solid 1px #eeefed;
+            width: 100px;
+            padding: 5px;
+            margin: 2px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .carbaidu{
+            color: #ff201e;
+            font-size: 16px;
+        }
+        .subbtn{
+            color: #F44336;
+            border: solid 1px  #efe0e0;
+            width: 100px;
+            padding: 5px;
+            margin: 2px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .brand{
+            height:200px;overflow-y:auto;
+        }
+        .mao{
+            padding: 4px;
+        }
+        .overtime{
+            color: #ff252f;
+            font-size: 20px;
+        }
+        .clipimg{
+            margin: 5px;
+        }
+        .tip{
+            color:#ff3333;
+        }
+    </style>
+    <script type="application/javascript">
+        $(document).ready(function(e) {
+            const initJson=JSON.parse("[[${carsdatajson}]]".replace(/&quot;/gi, '"'));
+            console.log(JSON.stringify(initJson, null, 2));
+            const scale=1;
+            var carrectarry=new Array();
+            var carnorectarry=new Array();
+            loadFromJson(initJson);
+            var canvas = document.getElementById("thecanvas");
+            var ctx = canvas.getContext("2d");
+
+            var simg=new Image()
+            var filename = "[[${task.folder}]]"+"[[${task.filename}]]";
+            simg.src=filename;
+
+            var img=new Image()
+            var width=0;
+            var height=0;
+            var isscale=true;
+            img.src=filename;
+            var role = "[[${session.ssysuser.role}]]";
+            $('.subbtn').attr("disabled","disabled");// disabled
+            function addcar(target){
+                var carhtml = '<div class="car group">'+
+                    '<label>车牌信息</label>'+
+                        '<div class="form-group">'+
+                            '<label>车牌</label>'+
+
+                            '<input class="offseti form-control"  name="lefttop" placeholder="车牌左上角" readonly="readonly">'+
+                            '<input class="offseti form-control"  name="rightbottom" placeholder="车牌右下角" readonly="readonly">'+
+                            '<canvas class="clipimg" id="canvascarno" height="20px"></canvas>'+
+                            '<div class="tip">注：车牌号码里没有字母"I" 和 "O"，像这两个的是数字1和0</div><input class="form-control" name="carno" placeholder="输入车牌号码">'+
+                            '<div class="delnobtn">重框车牌</div>'+
+                        '</div>'+
+                        '<div class="delbtn">删除</div>'+
+                    '</div>';
+                target.html(carhtml);
+            }
+            function setcar(target,cars){
+                var filename = "[[${task.folder}]]"+"[[${task.filename}]]";
+                target.find(`.car`).each(function(index) {
+                    if(cars[index].lefttop&&cars[index].rightbottom){
+                        $(this).find(`[name='lefttop']`).val(cars[index].lefttop);
+                        $(this).find(`[name='rightbottom']`).val(cars[index].rightbottom);
+                        var lt = cars[index].lefttop;
+                        var lts = lt.split(",");
+                        var lx = Number(lts[0]);
+                        var ly =  Number(lts[1]);
+                        var yx = cars[index].rightbottom;
+                        var yxs = yx.split(",");
+                        var xx = Number(yxs[0]);
+                        var yy = Number(yxs[1]);
+                        var w=xx-lx;
+                        var h=yy-ly;
+
+                        var scanvas = $('#canvascarno')[0];
+                        scanvas.setAttribute("width",w);
+                        scanvas.setAttribute("height",h);
+                        var sctx = scanvas.getContext("2d");
+                        sctx.drawImage(simg,lx,ly,w,h,0,0,w,h);
+                    }
+                    $(this).find(`[name='carno']`).val(cars[index].carno);
+
+                });
+            }
+            function loadFromJson(json){
+                if(json.cars){
+                    //$("#sub").focus();
+                    for (var i=0;i<json.cars.length;i++) {
+                        addcar($("#carsinfo"));
+                        if(json.cars[i].lefttop&&json.cars[i].rightbottom){
+                            var lt = json.cars[i].lefttop;
+                            var lts = lt.split(",");
+                            var lx = Number(lts[0]);
+                            var ly =  Number(lts[1]);
+                            var yx = json.cars[i].rightbottom;
+                            var yxs = yx.split(",");
+                            var xx = Number(yxs[0]);
+                            var yy = Number(yxs[1]);
+                            var w=xx-lx;
+                            var h=yy-ly;
+                            var rect = {x:lx/scale,y:ly/scale,w:w/scale,h:h/scale};
+                            carnorectarry.push(rect);
+                        }
+                    }
+                    //setcar($("#carsinfo"),json.cars);
+                }
+            }
+            function countTime() {
+                //获取当前时间
+                var date = new Date();
+                var now = date.getTime();
+                //设置截止时间
+                var endDate = new Date("[[${task.createtime}]]");
+                var end = endDate.getTime()+10*60*1000;
+                //时间差
+                var leftTime = end-now;
+                //定义变量 d,h,m,s保存倒计时的时间
+                var s=0;
+                if (leftTime&&leftTime>=0) {
+                    s = Math.floor(leftTime/1000);
+                }else{
+                    s=0;
+                    $.ajax({
+                        type: "POST",
+                        url: "[[@{../admin/overtask(taskno=${task.taskno})}]]",
+                        data: "",
+                        success: function(data){
+                            window.location.href="[[@{../admin/dotask(batchno=${taskbatch.batchno})}]]";
+                        }
+                    });
+                }
+
+                $("#overtime").html("剩余时间："+s+"秒") ;
+                //递归每秒调用countTime方法，显示动态时间效果
+                setTimeout(countTime,1000);
+            }
+
+
+            var flag = false;
+            var x = 0; // 鼠标开始移动的位置X
+            var y = 0; // 鼠标开始移动的位置Y
+
+            var drw=false;
+            var noindex = 0;
+            var isdelcar=false;
+
+
+            $("body").on("click", ".delbtn", function() {
+                //del($(this).parent().index());
+                delcarno(0);
+                $(this).parent().remove();
+            });
+
+            $("body").on("click", ".delnobtn", function() {
+                var carnocanvas = $(this).prev()[0];
+                var carnoctx = carnocanvas.getContext("2d");
+                carnoctx.clearRect(0, 0, carnocanvas.width, carnocanvas.height);
+                $(this).prev().prev().val('');
+                $(this).prev().prev().prev().val('');
+                delcarno(0);
+            });
+
+            $("#sub").blur(function(){
+                //$("#firstresult2").attr("checked","checked");
+                //$("#secondresult2").attr("checked","checked");
+
+            })
+            function getCars(target){
+                var json={};
+                json.cars=[];
+                target.find(".car").each(function (index) {
+                    var carno = $(this).find(`[name='carno']`).val();
+
+                    var lefttop = $(this).find(`[name='lefttop']`).val();
+                    var rightbottom=$(this).find(`[name='rightbottom']`).val();
+                    var left ="";
+                    var top = "";
+                    var right="";
+                    var bottom="";
+                    var leftbottom ="";
+                    var righttop ="";
+
+                    if(lefttop!=""&&rightbottom!="") {
+                        left = lefttop.split(",")[0];
+                        top = lefttop.split(",")[1];
+                        right = rightbottom.split(",")[0];
+                        bottom = rightbottom.split(",")[1];
+                        leftbottom = left+","+bottom;
+                        righttop =right+","+top;
+                    }else{
+                        lefttop="";
+                        rightbottom="";
+                    }
+                    json.cars.push({
+                        carno: carno,
+                        lefttop:lefttop,
+                        righttop:righttop,
+                        rightbottom: rightbottom,
+                        leftbottom:leftbottom
+                    })
+                });
+                return json;
+
+            }
+
+            img.onload = function () //确保图片已经加载完毕
+            {
+                drawimg();
+                if(initJson.cars){
+                    //setperson($("#personinfo"),initJson.persons);
+                    setcar($("#carsinfo"),initJson.cars);
+                }
+
+                $('.subbtn').removeAttr("disabled");// Enable，JQuery写法
+                if(role=='2') {
+                    countTime();
+                }else{
+                    $("#sub").focus();
+                }
+            }
+
+
+            /* 为canvas绑定mouse事件 */
+            $('#thecanvas').mousedown(function(e){
+                flag = true;
+                x = e.offsetX; // 鼠标落下时的X
+                y = e.offsetY; // 鼠标落下时的Y
+                if(isscale){
+                    isscale=false;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height); // 再次绘制图片到画布上
+                    //	.drawImage(img, 0, 0);
+                    drawimg();
+                }
+            }).mouseup(function(e){
+                flag = false;
+                if(drw){
+                    saverect(x*2,y*2,(e.offsetX-x)*2,(e.offsetY-y)*2);
+                }
+                drw=false;
+            }).mousemove(function(e){
+                drawRect(e); // 绘制方法
+                if(isscale){
+                    ctx.clearRect(0, 0, canvas.width, canvas.height); // 再次绘制图片到画布上
+                    drawimg();
+                    var x = e.offsetX;
+                    var y = e.offsetY; // 开始绘制放大区域
+                    drawscaleImage(img,x,y);
+                }
+            }).mouseleave(function(e){
+                isscale = true;
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // 再次绘制图片到画布上
+                drawimg();
+            });
+            function drawRect(e){
+                if(flag&&Math.abs(e.offsetX-x)>1&&Math.abs(e.offsetY-y)>1){
+                    drw=true;
+                    ctx.clearRect(0,0,canvas.width,canvas.height);
+                    drawimg();
+                    ctx.strokeStyle = "#00FF00";
+                    ctx.beginPath();
+                    ctx.strokeRect(x*2,y*2,(e.offsetX-x)*2,(e.offsetY-y)*2);
+                }
+            }
+
+            function saverect(x,y,w,h){
+                var rect = {x:x,y:y,w:w,h:h};
+                carnorectarry.push(rect);
+                showrect(x,y,w,h);
+            }
+            function showrect(x,y,w,h){
+                addcar($('#carsinfo'));
+                drawclipimg(x,y,w,h,$('#canvascarno'));
+            }
+            function drawclipimg(x,y,w,h,canvas){
+                var ww=w,hh=h,sx = x,sy = y;
+                if(w<0){
+                    ww=-w;
+                    sx = x+w;
+                }
+                if(h<0){
+                    hh=-h;
+                    sy = y+h;
+                }
+                canvas.prev().val((sx*scale+ww*scale)+","+(sy*scale+hh*scale));
+                canvas.prev().prev().val(sx*scale+","+sy*scale);
+                var scanvas = canvas[0];
+                scanvas.setAttribute("width",ww*scale*2);
+                scanvas.setAttribute("height",hh*scale*2);
+                scanvas.style.width = ww*scale + 'px';
+                scanvas.style.height = hh*scale + 'px';
+                var sctx = scanvas.getContext("2d");
+                sctx.scale(2,2);
+                sctx.drawImage(simg,sx*scale,sy*scale,ww*scale,hh*scale,0,0,ww*scale,hh*scale);
+                canvas.prev().focus();
+            }
+
+            function delcarno(l){
+                carnorectarry.splice(l, carnorectarry.length);
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                ctx.drawImage(img,0,0,width,height);
+                // for ( var i = 0; i <carrectarry.length; i++){
+                //     var rect = carrectarry[i];
+                //     ctx.strokeStyle = "#00FF00";
+                //     ctx.beginPath();
+                //     ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);
+                // }
+
+
+            }
+            function drawimg() {
+                width=img.width/scale;
+                height=img.height/scale;
+                canvas.setAttribute("width",width*2);
+                canvas.setAttribute("height",height*2);
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+                $("#main").css({"width":width/1.8+'px',"height":height/1.8+"px"});
+                ctx.drawImage(img,0,0,width,height);
+                // for ( var i = 0; i <carrectarry.length; i++){
+                //     var rect = carrectarry[i];
+                //     ctx.strokeStyle = "#00FF00";
+                //     ctx.beginPath();
+                //     ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);
+                // }
+                for ( var i = 0; i <carnorectarry.length; i++){
+                    var rect = carnorectarry[i];
+                    ctx.strokeStyle = "#00FF00";
+                    ctx.beginPath();
+                    ctx.strokeRect(rect.x,rect.y,rect.w,rect.h);
+                }
+
+            }
+            function drawscaleImage(img,x,y){
+
+                //ctx.drawImage(img,x*scale-80,y*scale-80,160,160,x-80,y-80,160,160);
+                //ctx.drawImage(img,(x*scale)*2-160,(y*scale)*2-160,320,320,x*2-160,y*2-160,320,320);
+                ctx.scale(2,2);
+                ctx.drawImage(img,(x*scale)*2-80,(y*scale)*2-80,160,160,x-80,y-80,160,160);
+            }
+            $('.subbtn').click(function(){
+                var resultJson = getCars($("#carsinfo"));
+                if(resultJson=='') {
+                    return false;
+                }else {
+                    $("#carsdata").val(JSON.stringify(resultJson));
+                    $('form').submit();
+                }
+            });
+
+        });
+
+    </script>
+</head>
+
+<body>
+<div layout:fragment="content">
+    <div id="page-wrapper">
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        做任务
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="form-group">
+                                <label>文件名：</label>
+                                <a th:href="${task.folder+task.filename}" target="_blank"> <span th:text="${task.filename}"></span></a>
+                                <label>任务编号：</label>
+                                <span th:text="${task.taskno}"></span>
+                                <label>任务类型</label>
+                                <span th:switch="${taskbatch.type}">
+                                            <span th:case="'1'">笔录</span>
+                                            <span th:case="'2'">车牌识别</span>
+                                            <span th:case="'3'">车辆信息</span>
+                                            <span th:case="'4'">文字录入</span>
+                                             <span th:case="'5'">行人信息</span>
+                                             <span th:case="'6'">人包信息</span>
+                                             <span th:case="'7'">车牌信息</span>
+                                        </span>
+                                <label>任务描述：</label>
+                                <span th:text="${taskbatch.descr}"></span>
+                                <span id="overtime" class="overtime"></span>
+                            </div>
+                            <div class="doc" id="docdiv">
+                                <div id="main" style="overflow: hidden"><canvas id="thecanvas"></canvas></div>
+                            </div>
+
+                            <div class="col-lg-6 editor" >
+                                <form name="frm" th:action="@{../admin/savecarnoinfo}" method="post">
+                                    <input type="hidden" name="taskno" id="taskno" th:value="${task.taskno}">
+                                    <input type="hidden" name="carsdata" id="carsdata">
+                                    <div id="carsinfo">
+
+                                    </div>
+
+                                    <th:block th:if="${session.ssysuser.role=='3'}">
+                                        <div class="form-group">
+                                            <label>是否合格：</label>
+                                            <div class="radio">
+                                                <label>
+                                                    <input type="radio"  name="firstresult" id="firstresult1" value="1" checked="checked">是
+                                                </label>
+                                            </div>
+                                            <div class="radio">
+                                                <label>
+                                                    <input type="radio"  name="firstresult" id="firstresult2" value="0">否
+                                                </label>
+                                            </div>
+                                            <div class="radio">
+                                                <label>
+                                                    <input type="radio"  name="firstresult" id="firstresult3" value="-1">重做
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </th:block>
+                                    <th:block th:if="${session.ssysuser.role=='4'}">
+                                        <div class="form-group">
+                                            <label>是否合格：</label>
+                                            <div class="radio">
+                                                <label>
+                                                    <input type="radio"  name="secondresult" id="secondresult1" value="1" checked="checked">是
+                                                </label>
+                                            </div>
+
+                                            <div class="radio">
+                                                <label>
+                                                    <input type="radio"  name="secondresult" id="secondresult2" value="0">否
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </th:block>
+                                    <th:block th:if="${session.ssysuser.role=='2'||session.ssysuser.role=='3'||session.ssysuser.role=='4'}">
+                                        <input id="sub" class="subbtn" type="button" value="保 存">
+
+                                    </th:block>
+                                </form>
+
+                            </div>
+                        </div>
+                        <!-- /.row (nested) -->
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <!-- /.panel -->
+            </div>
+            <!-- /.col-lg-12 -->
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /#page-wrapper -->
+</div>
+
+
+
+</body>
+
+</html>

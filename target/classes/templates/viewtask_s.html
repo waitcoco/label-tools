@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout" layout:decorator="fragments/layout">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>任务管理</title>
+
+    <style>
+        .doc{
+            float: left;width:60%; height:500px;overflow-y:auto;
+        }
+        .editor{
+            float: right;width:40%; height:500px;overflow-y:auto;
+        }
+        .group{
+            background: #f5f9f8; border: #c4c4c7 solid 1px;  border-radius: 5px; padding:5px;
+        }
+        .addbtn{
+            color: #67bf81;
+            border: solid 1px #cbdcc3;
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .addbtnbig{
+            color: #67bf81;
+            border: solid 1px #cbdcc3;
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            font-size:18px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .margintop8{
+            margin-top: 8px;
+        }
+        .delbtn{
+            color: #da7878;
+            border: solid 1px  #efe0e0;
+            width: 100px;
+            padding: 5px;
+            margin: 2px;
+            text-align: center;
+            cursor:pointer;
+        }
+        .subbtn{
+            color: #e82424;
+            border: solid 1px #dcc8c3;
+            width: 100px;
+            padding: 5px;
+            margin: 5px;
+            font-size:18px;
+            text-align: center;
+            cursor:pointer;
+        }
+    </style>
+    <script type="application/javascript">
+    const initJson=JSON.parse("[[${record}]]".replace(/&quot;/gi, '"'))
+    function addNewPerson (obj, canDelete = true, personName='newPerson') {
+      const html = `<div class="margintop8">
+      <div class="group">
+          <div class="form-group" name="${personName}">
+              <label>人员信息：</label>
+              <div class="form-group">
+                  <label>姓名：</label>
+                  <input id="name" name="name" />
+              </div>
+              <div class="form-group">
+                  <label>别名：</label>
+                  <input id="alias" name="alias" />(外号)
+              </div>
+              <div class="form-group">
+                  <label>民族：</label>
+                  <input id="nation" name="nation" />
+              </div>
+              <div class="form-group">
+                  <label>性别：</label>
+                  <select name="sex" id="sex">
+                      <option>男</option>
+                      <option>女</option>
+                  </select>
+              </div>
+              <div class="form-group" name="contacts">
+                  <label>联系方式：</label>
+                  <div class="addbtn addcontact" >增加联系方式</div>
+              </div>
+              <div class="form-group">
+                  <label>年龄：</label>
+                  <input id="age" name="age" />
+              </div>
+              <div class="form-group">
+                  <label>出生日期：</label>
+                  <input id="birthday" name="birthday" />
+              </div>
+              <div class="form-group">
+                  <label>籍贯：</label>
+                  <input id="origin" name="origin" />
+              </div>
+              <div class="form-group" name="identify">
+                  <label>身份证件：</label>
+                  <div>类型:
+                      <select name="type" id="identifytype">
+                          <option>身份证</option>
+                          <option>护照</option>
+                          <option>军官证</option>
+                      </select>
+                  </div>
+                  <div>
+                      号码：<input id="identifyno" name="no" /></div>
+              </div>
+              <div class="form-group">
+                  <label>现住址：</label>
+                  <input id="place" name="place" />
+              </div>
+              <div class="form-group">
+                  <label>户籍地：</label>
+                  <input id="domicile" name="domicile" />
+              </div>
+              <div class="form-group">
+                  <label>文化程度：</label>
+                  <select name="education" id="education">
+                      <option></option>
+                      <option>文盲</option>
+                      <option>小学</option>
+                      <option>初中</option>
+                      <option>中专</option>
+                      <option>高中</option>
+                      <option>大专</option>
+                      <option>大学本科</option>
+                      <option>研究生</option>
+                      <option>博士</option>
+                  </select>
+              </div>
+              <div class="form-group">
+                  <label>工作：</label>
+                  <input id="work" name="work" />
+              </div>
+
+              <div class="form-group" name="familys">
+                  <label>家庭成员：</label>
+                  <div class="addbtn addfamily" >增加家庭成员</div>
+              </div>
+              <div class="form-group" name="relations">
+                  <label>关联关系：</label>
+                  <div class="addbtn addprelation" >增加关联关系</div>
+              </div>
+              <div class="form-group">
+                  <label>标签：</label>
+                  <input id="ctag" name="tag" />
+              </div>
+          </div>
+      </div>
+      ${canDelete ? `<div class="delbtn">删除</div>` : ''}
+      </div>`;
+      $(obj).before(html);
+    }
+    function addContacts (obj) {
+      const html = `
+        <div class="margintop8" name="contract">
+        <div>
+          类型：<select name="type" id="type">
+            <option>手机号</option>
+            <option>座机</option>
+            <option>微信</option>
+            </select>
+        </div>
+        <div>号码：<input id="no" name="no" />（手机号/微信号）</div>
+        <div>名称：<input id="name" name="name" />（姓名/微信名）</div>
+        <div class="delbtn">删除</div>
+        </div>
+      `
+      $(obj).before(html);
+    }
+
+    function addFamily (obj) {
+      const html = `
+        <div class="margintop8" name="family">
+        <div>
+            姓名：<input id="familyname" name="name" />
+        </div>
+        <div>
+            关系：<input id="familyrelation" name="relation" />
+        </div>
+        <div class="delbtn">删除</div>
+        </div>
+      `
+      $(obj).before(html);
+    }
+
+    function addRelation (obj) {
+      const html = `
+        <div class="margintop8" name="personRelation">
+        <div>
+            姓名：<input id="relationname" name="name" />
+        </div>
+         <div>
+            别名：<input id="relationalias" name="alias" />
+        </div>
+        <div>
+            关系：<input id="relation" name="relation" />
+        </div>
+        <div class="delbtn">删除</div>
+        </div>
+      `
+      $(obj).before(html);
+    }
+
+    function addEvent (obj) {
+      const html = `
+        <div class="margintop8" name="newEvent">
+        <div class="group">
+            <div class="form-group">
+                <label>类型：</label>
+                <select name="type" id="type">
+                    <option>吸毒</option>
+                    <option>贩毒</option>
+                    <option>带货</option>
+                    <option>吸毒贩毒</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>地点：</label>
+                <input id="place" name="place" />
+            </div>
+            <div class="form-group">
+                <label>时间：</label>
+                <input id="recordname" name="time" />
+            </div>
+            <div class="form-group">
+                <label>参与人：</label>
+                <div class="addbtn addpart">增加参与人</div>
+            </div>
+            <div class="form-group">
+                <label>标签：</label>
+                <input id="tag" name="tag" />
+            </div>
+
+        </div>
+        <div class="delbtn">删除</div>
+        </div>
+      `
+      $(obj).before(html);
+    }
+
+    function addEventPerson (obj) {
+      const html = `
+        <div class="margintop8" name="eventPerson">
+        <div>姓名：<input id="name" name="name" /></div>
+        <div>别名：<input id="alias" name="alias" /></div>
+         <div>角色:<select name="type" id="type">
+             <option>买方</option>
+             <option>卖方</option>
+             <option>介绍人</option>
+             <option>吸毒者</option>
+         </select></div>
+        <div class="delbtn">删除</div>
+        </div>
+      `
+      $(obj).before(html);
+    }
+
+    function loadFromJson (json) {
+      //json.filename =  "/"+"[[${filefloder}]]"+"[[${task.filename}]]";
+      //console.log(JSON.stringify(json, null, 2))
+      addNewPerson($("[name='targetperson']"), false, 'thisPerson')
+        $(`[name=recordname]`).val(json.recordname)
+        $(`[name=recordtype]`).val(json.recordtype)
+        $(`[name=starttime]`).val(json.starttime)
+        $(`[name=endtime]`).val(json.endtime)
+        $(`[name=recordtag]`).val(json.tag)
+
+        function setPerson (target, person) {
+            target.find(`[name=name]`).val(person.name)
+            target.find(`[name=alias]`).val(person.alias)
+            target.find(`[name=sex]`).val(person.sex)
+            target.find(`[name=age]`).val(person.age)
+            target.find(`[name=birthday]`).val(person.birthday)
+            target.find(`[name=origin]`).val(person.origin)
+            target.find(`[name=identify]`).find(`[name=no]`).val(person.identify.no)
+            target.find(`[name=identify]`).find(`[name=type]`).val(person.identify.type)
+            target.find(`[name=place]`).val(person.place)
+            target.find(`[name=domicile]`).val(person.domicile)
+            target.find(`[name=education]`).val(person.education)
+            target.find(`[name=work]`).val(person.work)
+            target.find(`[name=tag]`).val(person.tag)
+            target.find(`[name=nation]`).val(person.nation)
+
+
+        for (const contract of person.contacts) {
+          addContacts(target.find(`[class='addbtn addcontact']`))
+        }
+        target.find(`[name=contract]`).each(function(index) {
+          $(this).find(`[name=no]`).val(person.contacts[index].no)
+          $(this).find(`[name=name]`).val(person.contacts[index].name)
+          $(this).find(`[name=type]`).val(person.contacts[index].type)
+
+        })
+        for (const family of person.familys) {
+          addFamily(target.find(`[class='addbtn addfamily']`))
+        }
+        target.find(`[name=family]`).each(function(index) {
+          $(this).find(`[name=name]`).val(person.familys[index].name)
+          $(this).find(`[name=relation]`).val(person.familys[index].relation)
+
+        })
+        for (const relation of person.relations) {
+          addRelation(target.find(`[class='addbtn addprelation']`))
+        }
+        target.find(`[name=personRelation]`).each(function(index) {
+          $(this).find(`[name=name]`).val(person.relations[index].name)
+            $(this).find(`[name=alias]`).val(person.relations[index].alias)
+          $(this).find(`[name=relation]`).val(person.relations[index].relation)
+        })
+      }
+
+      function setEvent (target, event) {
+        target.find(`[name=name]`).val(event.name)
+        target.find(`[name=time]`).val(event.time)
+        target.find(`[name=type]`).val(event.type)
+        target.find(`[name=place]`).val(event.place)
+        target.find(`[name=tag]`).val(event.tag)
+
+        for (const person of event.persons) {
+          addEventPerson(target.find(`[class='addbtn addpart']`))
+        }
+
+        target.find(`[name=eventPerson]`).each(function (index) {
+          $(this).find(`[name=name]`).val(event.persons[index].name)
+            $(this).find(`[name=alias]`).val(event.persons[index].alias)
+          $(this).find(`[name=type]`).val(event.persons[index].type)
+        })
+      }
+
+      setPerson($("[name='thisPerson']"), json.person)
+
+      for (const newPerson of json.personlist) {
+        addNewPerson($(`#addperson`))
+      }
+      $(`[name=newPerson]`).each(function(index) {
+        setPerson($(this), json.personlist[index])
+      })
+
+      for (const newEvent of json.events) {
+        addEvent($(`#addevent`))
+      }
+      $(`[name=newEvent]`).each(function(index) {
+        setEvent($(this), json.events[index])
+      })
+    }
+        $(document).ready(function(e) {
+            var filename = "[[${#httpServletRequest.getScheme() + '://' + #httpServletRequest.getServerName() + ':' + #request.getServerPort()  + #request.getContextPath() + '/'}]]"+"[[${filefolder}]]"+"/"+"[[${task.filename}]]";
+            $("#docdiv").load(filename);
+            loadFromJson(initJson)
+
+            $("body").on("click", ".addfamily",function(){
+              addFamily(this)
+            });
+
+            $("body").on("click", ".addcontact",function(){
+              addContacts(this)
+            });
+
+            $("body").on("click", ".addprelation",function(){
+              addRelation(this)
+            });
+
+            $("body").on("click", ".addpart",function(){
+              addEventPerson(this)
+            });
+
+            $("body").on("click", "#addevent",function(){
+              addEvent(this)
+            });
+
+            $("body").on("click", "#addperson",function(){
+              addNewPerson(this)
+            });
+            $("body").on("click", ".delbtn", function() {
+                $(this).parent().remove();
+            });
+
+            $('form').submit(function(){
+              const resultJson = {}
+              resultJson.recordname = $(`[name=recordname]`).val()
+              resultJson.recordtype = $(`[name=recordtype]`).val()
+              resultJson.starttime = $(`[name=starttime]`).val()
+              resultJson.endtime = $(`[name=endtime]`).val()
+              resultJson.tag = $(`[name=recordtag]`).val()
+
+              function getPerson (target) {
+                const person = {}
+                person.name = target.find(`[name=name]`).val()
+                person.alias = target.find(`[name=alias]`).val()
+                person.sex = target.find(`[name=sex]`).val()
+                person.age = target.find(`[name=age]`).val()
+                person.birthday = target.find(`[name=birthday]`).val()
+                person.origin = target.find(`[name=origin]`).val()
+                person.identify = {}
+                person.identify.no = target.find(`[name=identify]`).find(`[name=no]`).val()
+                person.identify.type = target.find(`[name=identify]`).find(`[name=type]`).val()
+                person.place = target.find(`[name=place]`).val()
+                person.domicile = target.find(`[name=domicile]`).val()
+                person.education = target.find(`[name=education]`).val()
+                person.work = target.find(`[name=work]`).val()
+                person.tag = target.find(`[name=tag]`).val()
+                person.nation = target.find(`[name=nation]`).val()
+
+
+                  person.contacts = []
+                target.find(`[name=contract]`).each(function () {
+                  person.contacts.push({
+                    no: $(this).find(`[name=no]`).val(),
+                    name: $(this).find(`[name=name]`).val(),
+                    type: $(this).find(`[name=type]`).val()
+                  })
+                })
+
+                person.familys = []
+                target.find(`[name=family]`).each(function () {
+                  person.familys.push({
+                    name: $(this).find(`[name=name]`).val(),
+                    relation: $(this).find(`[name=relation]`).val()
+                  })
+                })
+
+                person.relations = []
+                target.find(`[name=personRelation]`).each(function () {
+                  person.relations.push({
+                    name: $(this).find(`[name=name]`).val(),
+                    alias: $(this).find(`[name=alias]`).val(),
+                    relation: $(this).find(`[name=relation]`).val()
+                  })
+                })
+                return person
+              }
+
+              function getEvent (target) {
+                const event = {}
+                event.name = target.find(`[name=name]`).val()
+                event.time = target.find(`[name=time]`).val()
+                event.type = target.find(`[name=type]`).val()
+                event.tag = target.find(`[name=tag]`).val()
+                event.place = target.find(`[name=place]`).val()
+                event.persons = []
+                target.find(`[name=eventPerson]`).each(function () {
+                  event.persons.push({
+                    name: $(this).find(`[name=name]`).val(),
+                    alias: $(this).find(`[name=alias]`).val(),
+                    type: $(this).find(`[name=type]`).val()
+                  })
+                })
+                return event
+              }
+
+              resultJson.person = getPerson($(`[name=thisPerson]`))
+              resultJson.personlist = []
+              $(`[name=newPerson]`).each(function () {
+                resultJson.personlist.push(getPerson($(this)))
+              })
+              resultJson.events = []
+              $(`[name=newEvent]`).each(function () {
+                resultJson.events.push(getEvent($(this)))
+              })
+              $("#record").val(JSON.stringify(resultJson))
+              console.log(JSON.stringify(resultJson, null, 2))
+            }
+            );
+        });
+
+    </script>
+</head>
+
+<body>
+<div layout:fragment="content">
+            <div id="page-wrapper">
+                <!-- /.row -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                做任务
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <label>文件名：</label>
+                                        <span th:text="${task.filename}"></span>
+                                        <label>任务编号：</label>
+                                        <span th:text="${task.taskno}"></span>
+                                        <label>任务类型</label>
+                                        <span th:switch="${taskbatch.type}">
+                                             <span th:case="'1'">笔录</span>
+                                            <span th:case="'2'">车牌识别</span>
+                                            <span th:case="'3'">车辆信息</span>
+                                            <span th:case="'4'">文字录入</span>
+                                        </span>
+                                        <label>任务描述：</label>
+                                        <span th:text="${taskbatch.descr}"></span>
+                                    </div>
+                                    <div class="doc" id="docdiv"></div>
+
+                                    <div class="col-lg-6 editor" >
+                                        <form name="frm" th:action="@{../admin/saverecord}" method="post">
+                                        <input type="hidden" id="taskno" name="taskno" th:value="${task.taskno}">
+                                        <input type="hidden" id="record" name="record">
+                                        <div th:text="${msg}" style="color: #ff201e;"></div>
+                                        <div style="text-align: center;font-size: 20px; color: #8c8c8c;">
+                                            <label>录入区</label>
+                                        </div>
+                                        <div>笔录基本信息</div>
+                                        <div class="group">
+                                            <div class="form-group">
+                                                <label>笔录名称：</label>
+                                                <input id="recordname" name="recordname" />
+                                            </div>
+                                            <div class="form-group">
+                                            <label>开始时间：</label>
+                                                <input id="starttime" name="starttime" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label>结束时间：</label>
+                                                <input id="endtime" name="endtime" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label>类型：</label>
+                                               <select name="type" id="type">
+                                                   <option>吸毒</option>
+                                                   <option>贩毒</option>
+                                                   <option>带货</option>
+                                                   <option>吸毒贩毒</option>
+                                               </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>标签：</label>
+                                                <input id="recordtag" name="recordtag" />
+                                            </div>
+                                        </div>
+                                        <div style="margin-top: 10px;">被询问人信息</div>
+                                        <div class="" name="targetperson">
+                                        </div>
+
+                                        <div style="margin-top: 10px;">关联人员</div>
+                                        <div class="" name="personlist">
+                                          <div class="addbtnbig" id="addperson">增加人员</div>
+                                        </div>
+
+                                        <div style="margin-top: 10px;">关联事件</div>
+                                        <div class="" name="events">
+                                          <div class="addbtnbig" id="addevent">增加事件</div>
+                                        </div>
+
+                                            <input class="subbtn" type="submit" value="保 存">
+                                     </form>
+                                    </div>
+
+                                </div>
+                                <!-- /.row (nested) -->
+                            </div>
+                            <!-- /.panel-body -->
+                        </div>
+                        <!-- /.panel -->
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+                <!-- /.row -->
+            </div>
+        <!-- /#page-wrapper -->
+</div>
+
+
+
+</body>
+
+</html>
